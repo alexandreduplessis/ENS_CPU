@@ -1,0 +1,9 @@
+(executables
+ (names graph_test scheduler_test netlist_simulator)
+ (libraries unix)
+ (modes byte exe))
+
+(menhir
+ (modules netlist_parser))
+
+(ocamllex netlist_lexer)
