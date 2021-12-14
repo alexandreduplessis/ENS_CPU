@@ -26,5 +26,5 @@ let schedule p =
    let rec attrib_eqs = function
       | [] -> []
       | d::f -> try (d, List.assoc d p.p_eqs) :: (attrib_eqs f) with Not_found -> attrib_eqs f
-   in try {p_eqs = attrib_eqs (topological graphe); p_inputs = p.p_inputs; p_outputs = p.p_outputs; p_vars = p.p_vars}
+   in try {p with p_eqs = attrib_eqs (topological graphe)}
    with Cycle -> raise Combinational_cycle
