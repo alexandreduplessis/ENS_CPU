@@ -1,0 +1,8 @@
+(ocamllex
+ (modules lexer))
+(menhir
+ (modules parser))
+(executable
+ (name assembleur)
+ (modules ast lexer parser assembleur)
+ (flags ()))
