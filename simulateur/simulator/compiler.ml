@@ -29,7 +29,7 @@ let shift_left arg amount =
 
 let shift_right arg amount =
   assert (amount >= 0);
-  if amount = 0 then arg else "((" ^ arg ^ ")>>" ^ (string_of_int amount) ^ ")"
+  if amount = 0 then arg else "((" ^ arg ^ ")>>" ^ (string_of_int (amount-1)) ^ ")"
 
 let read_arg x = match x with
    | Avar y -> y
