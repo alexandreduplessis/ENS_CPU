@@ -1,0 +1,4 @@
+true: use_menhir
+<*.ml>: debug
+<*.byte>: use_unix, debug
+<*.native>: use_unix, debug
