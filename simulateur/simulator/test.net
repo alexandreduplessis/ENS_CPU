@@ -1,0 +1,6 @@
+INPUT a, b
+OUTPUT s
+VAR
+  a : 3, b : 3, s : 3
+IN
+s = AND a b
