@@ -1,67 +1,139 @@
 open Netlist_ast
-type oneram = {lram : int ; wlram : int ; mutable valeurs : value array}
 
-let print_only = ref false
 let number_steps = ref (-1)
 
-let to_int b = if b=false then 0 else 1
+let ident_length p ident =
+  try
+    let t = Env.find ident p.p_vars in
+    match t with
+      | TBit -> 1
+      | TBitArray n -> n
+  with
+      Not_found -> failwith ("arg not found: " ^ ident)
 
-let cle_mem = Array.fold_left (fun n b -> 2*n+ to_int b) 0 (* Ecriture en base 10 du nombre binaire obtenu en concaténant *)
+let arg_length p = function
+  | Avar id -> ident_length p id
+  | Aconst (VBit _) -> 1
+  | Aconst (VBitArray ba) -> Array.length ba
 
-let rec read_input typ = (* lecture des entrées *)
-  let l = read_line () in
-  match typ with
-  |TBit -> VBit (not(l="0"))
-  |TBitArray n -> VBitArray (Array.init n (fun k->not(l.[k]='0')))
+let sl x shift_amount =
+  assert (shift_amount >= 0);
+  if shift_amount >= 64 then 0L
+  else Int64.shift_left x shift_amount
 
-let rec simul_onestep p vars ram rom compt = function
-  |0 -> ()
-  |n -> begin
-  let read_arg = function Aconst c -> c | Avar a -> Hashtbl.find vars a in
-  let all_to_array c = match read_arg c with VBit b -> [|b|] | VBitArray b -> b in
-  print_string ("Etape "^ string_of_int (compt+1-n)); print_newline (); List.iter (fun x-> print_string (x^"= "); Hashtbl.add vars x (read_input (Env.find x p.p_vars))) p.p_inputs; (* lecture des entrées *)
-    List.iter (fun (id,exp) -> let rep = match exp with
-      | Earg x -> read_arg x
-      | Ereg x -> Hashtbl.find vars x
-      | Enot x -> let VBit vx = read_arg x in VBit (not vx)
-      | Ebinop (bin, x, y) -> let VBit vx = read_arg x and VBit vy = read_arg y in
-      begin match bin with
-        |Or -> VBit (vx || vy)
-        |Xor -> VBit ((vx || vy) && not(vx && vy))
-        |And -> VBit (vx && vy)
-        |Nand -> VBit (not(vx && vy)) end
-      | Emux (cond, x, y) -> let VBit vcond = read_arg cond in if vcond then read_arg x else read_arg y
-      | Erom (_, _, ra) -> let ara = all_to_array ra in rom.(cle_mem ara)
-      | Eram (_, _,ra,_ ,_ ,_ ) -> let ara = all_to_array ra in let ar = Hashtbl.find ram id in (ar.valeurs).(cle_mem ara)
-      | Eselect (i, x) -> let ax = all_to_array x in VBit ax.(i) 
-      | Econcat (x, y) -> let ax = all_to_array x and ay = all_to_array y in VBitArray (Array.append ax ay)
-      | Eslice (i1, i2, x) -> let ax = all_to_array x in VBitArray (Array.sub ax i1 (i2-i1+1))
-    in Hashtbl.add vars id rep) p.p_eqs; (* on remet à jour (ou on ajoute) les variables modifiées *)
-    List.iter (fun (id,exp) -> match exp with (* Toutes les écritures en RAM sont faites à la fin : on reparcourt les équations *)
-      | Eram (_, _, _, we,wa,wd) -> let VBit vwe = read_arg we and vwa = all_to_array wa and vwd = read_arg wd in
-      if vwe then let ar = Hashtbl.find ram id in (ar.valeurs).(cle_mem vwa) <- vwd;
-      | _ -> ()) p.p_eqs;
-    print_newline (); List.iter (fun x -> print_string (x^" : "); let sortie = (Hashtbl.find vars x) in begin match sortie with VBit s -> print_int (to_int s)|VBitArray s -> Array.iter (fun x -> print_int (to_int x)) s end; print_newline ()) p.p_outputs; print_newline(); (* affichage des sorties *)
-    simul_onestep p vars ram rom compt (n-1) end (* lance la prochaine étape *)
+let mask a b =
+  Int64.(to_string (sub (sl one b) (sl one a)))
 
-let simulator program n =
-   let hram = Hashtbl.create 0 in (* table de hachage contenant les différentes RAM* *)
-   let lrom = ref 0 and wlrom = ref 0 in (* je suppose que je n'ai qu'une seule ROM *)
-   List.iter (fun (id,exp) -> match exp with Erom (n1, n2, _)-> lrom := (1 lsl n1); wlrom := n2 | Eram (n1, n2, _, _, _, _)-> Hashtbl.add hram id {lram = (1 lsl n1); wlram = n2; valeurs = (Array.make (1 lsl n1) (VBitArray (Array.make n2 false)))} | _->()) program.p_eqs; (* recherche des équations RAM et ROM, et initialisation de la RAM *)
-  let h = Hashtbl.create 0 in (* table de hachage des variables *)
-  Env.iter (fun x t -> Hashtbl.add h x (match t with TBit -> VBit false | TBitArray at -> VBitArray (Array.make at false))) program.p_vars;
-  simul_onestep program h hram (Array.init !lrom (fun i -> begin print_string ("ROM - mot "^(string_of_int i)^" ="); let t = read_input (TBitArray !wlrom) in (let VBitArray a = t in ()); t end)) n n (* on initialise toutes les variables, on demande la ROM en entrée *)
+let shift_left arg amount =
+  if amount = 0 then arg else "((" ^ arg ^ ")<<" ^ (string_of_int amount) ^ ")"
+
+let shift_right arg amount =
+  assert (amount >= 0);
+  if amount = 0 then arg else "((" ^ arg ^ ")>>" ^ (string_of_int amount) ^ ")"
+
+let read_arg x = match x with
+   | Avar y -> y
+   | Aconst (VBit b) -> if b then "1" else "0"
+   | Aconst (VBitArray ba) -> Int64.(to_string (Array.fold_left (fun a b -> logor (sl a 1) (if b then one else zero)) zero ba))
+
+let rec simulate_eqs p memories(ident, expr) = ident ^ "=" ^ (match expr with
+  | Earg x                       -> read_arg x
+  | Ereg x                       -> "reg_"^x
+  | Enot x                       -> "~"^read_arg x
+  | Ebinop (Or,  x,  y)          -> read_arg x ^ "|" ^ read_arg y
+  | Ebinop (And,  x,  y)         -> read_arg x ^ "&" ^ read_arg y
+  | Ebinop (Xor,  x,  y)         -> read_arg x ^ "^" ^ read_arg y
+  | Ebinop (Nand,  x,  y)        -> "~" ^ "(" ^ read_arg x ^ "&" ^ read_arg y ^ ")"
+  | Econcat (x, y)               -> (shift_left (read_arg x) (arg_length p y)) ^ "|" ^ (read_arg y)
+  | Eslice (i1, i2, x)           -> (shift_right (read_arg x) ((arg_length p x) - i2 - 1)) ^ "&" ^ (mask 0 (i2 - i1 + 1))
+  | Eselect (i, x)               -> (shift_right (read_arg x) ((arg_length p x) - i - 1)) ^ "&1"
+  | Eram(_, _, read_addr, _, _, _)       -> (Hashtbl.find memories ident) ^ "[" ^ (read_arg read_addr) ^ "]"
+  | Erom(_, _, read_addr)           -> (Hashtbl.find memories ident) ^ "[" ^ (read_arg read_addr) ^ "]"
+  | _                            -> failwith "not implemented"
+  ) ^ "\n;"
+
+let compile_eq2 p memories (ident, expr) = match expr with
+    | Ereg id -> "reg_" ^ id ^ " = " ^ id ^ ";\n" 
+    | Eram(_, _, _, write_enable, write_addr, data) -> (Hashtbl.find memories ident) ^ "[" ^ (read_arg write_addr) ^ "]^=((-" ^ (read_arg write_enable) ^ ")&(" ^ (read_arg data) ^ "^" ^ (Hashtbl.find memories ident) ^ "[" ^ (read_arg write_addr) ^ "]));\n"
+    | _ -> ""
+
+let header =
+"#include <stdio.h>
+#include <stdlib.h>
+
+void read_file(char* filename, int addr_size, int word_size, unsigned long long int* array) {
+    FILE* fp;
+    fp = fopen(filename, \"r\");
+    if (fp == NULL) {
+        perror(\"Error while opening ROM\\n\");
+        exit(1);
+    }
+    int num_chars = ((1 << addr_size) * word_size + 7) / 8;
+    unsigned long long int current = 0;
+    int num_read_bits = 0;
+    int read_index = 0;
+    for (int i = 0; i < num_chars; i++) {
+        current = (current << 8) | fgetc(fp);
+        num_read_bits += 8;
+        while (num_read_bits >= word_size) {
+            unsigned long long int mask = (num_read_bits == 64) ? 0 : (1 << num_read_bits);
+            num_read_bits -= word_size;
+            mask -= 1 << num_read_bits;
+            array[read_index] = (current & mask) >> num_read_bits;
+            read_index++;
+        }
+    }
+}
+
+int rom_id = 1;
+int main(int argc, char** &argv) {
+"
+
+let read_inputs p ff = List.iter (fun id -> Format.fprintf ff
+	"printf(\"%s = ?\\n\"); scanf(\"%%llu\", &%s);\n" id id) p.p_inputs
+
+let print_outputs p ff = List.iter (fun id -> Format.fprintf ff
+	"printf(\"%s = %%llu\\n\", %s);\n" id (read_arg (Avar id))) p.p_outputs
 
 let compile filename =
   try
     let p = Netlist.read_file filename in
-    begin try
-        let p = Scheduler.schedule p in
-        simulator p !number_steps
-      with
-        | Scheduler.Combinational_cycle ->
-            Format.eprintf "The netlist has a combinatory cycle.@.";
-    end;
+    let out_name = (Filename.chop_suffix filename ".net") ^ ".c" in
+    let out_exe_name = Filename.chop_suffix filename ".net" in
+    let out = open_out out_name in
+    let close_all () =
+      close_out out
+    in
+    let ff = Format.formatter_of_out_channel out in
+    let p = Scheduler.schedule p in
+    Format.fprintf ff "%s" header;
+    Env.iter (fun id _ -> Format.fprintf ff "unsigned long long int %s = 0;\n" id) p.p_vars;
+    let memories = Hashtbl.create 17 in
+    List.iter (fun (ident, expr) -> match expr with
+   | Ereg x -> Format.fprintf ff "unsigned long long int reg_%s = 0;\n" x;
+	| Eram(addr_size, word_size, read_addr, write_enable, write_addr, data) ->	   
+	  Hashtbl.add memories ident ("ram_" ^ ident);
+	  Format.fprintf ff "unsigned long long int %s[%d] = {0};\n" ("ram_" ^ ident) (1 lsl addr_size) (* initialise les RAM *)
+	| Erom(addr_size, word_size, read_addr) ->
+	  Hashtbl.add memories ident ("rom_" ^ ident);
+	  Format.fprintf ff "unsigned long long int %s[%d];\n" ("rom_" ^ ident) (1 lsl addr_size);
+	  Format.fprintf ff "read_file(argv[rom_id++], %d, %d, %s);\n" addr_size word_size ("rom_" ^ ident) (* crée la ROM *)
+    | _ -> ()
+	) p.p_eqs;
+    if (!number_steps = -1) then
+      Format.fprintf ff "%s" "while (1) {\n"
+    else
+      Format.fprintf ff "for (int step = 0; step < %d; step++) {\n" !number_steps
+    ;
+    read_inputs p ff;
+    List.iter (fun eq -> Format.fprintf ff "%s" (simulate_eqs p memories eq)) p.p_eqs;
+    List.iter (fun eq -> Format.fprintf ff "%s" (compile_eq2 p memories eq)) p.p_eqs;
+    print_outputs p ff;
+    Format.fprintf ff "%s" "}\nreturn 0;\n}\n";
+    Format.fprintf ff "@.";
+    close_all ();
+    let command = "gcc -std=c99 -O2 " ^ out_name ^ " -o " ^ out_exe_name in
+    ignore (Unix.system command)
   with
     | Netlist.Parse_error s -> Format.eprintf "An error accurred: %s@." s; exit 2
 
