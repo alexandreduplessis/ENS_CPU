@@ -1,2 +1,0 @@
-netlist_parser.ml: Array Env Lexing Netlist_ast Parsing String
-netlist_parser.mli: Lexing Netlist_ast
