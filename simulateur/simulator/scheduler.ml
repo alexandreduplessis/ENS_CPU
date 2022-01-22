@@ -21,7 +21,7 @@ let read_exp (id, expr) =
 let schedule p =
    let graphe = mk_graph () in
    Env.iter (fun x _ -> add_node graphe x) p.p_vars;
-   List.iter (fun (id, _) -> add_node graphe id) p.p_eqs;
+   (*List.iter (fun (id, _) -> add_node graphe id) p.p_eqs;*)
    List.iter (fun (id, expr) -> List.iter (fun elt -> add_edge graphe elt id) (read_exp (id, expr))) p.p_eqs ;
    let rec attrib_eqs = function
       | [] -> []
