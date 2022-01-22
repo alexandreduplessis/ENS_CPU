@@ -23,16 +23,16 @@ let rec simulate_eqs p memories(ident, expr) = ident ^ "=" ^ (match expr with
   | Eselect (i, x)               -> Printf.sprintf "bitset<1>{(%s.to_string())[%d]}" (read_arg x) i
   | Eram(addr_size, word_size, read_addr, _, _, _)-> let id = (Hashtbl.find memories ident) in 
     let addr = read_arg read_addr in  
-    Printf.sprintf "bitset<%d>{(%s).substr ((%s).to_ulong(), (%d))}" (1 lsl addr_size) id addr word_size 
+    Printf.sprintf "bitset<%d>{((%s).to_string()).substr ((%s).to_ulong(), (%d))}" word_size id addr word_size 
   (* a optimiser en faisant la conversion to_ulong en ocaml *)
-  | Erom(addr_size, word_size, read_addr)-> let id = (Hashtbl.find memories ident) in let addr = read_arg read_addr in Printf.sprintf "bitset<%d>{(%s).substr ((%s).to_ulong(), %d)}" (1 lsl addr_size) id addr word_size
+  | Erom(addr_size, word_size, read_addr)-> let id = (Hashtbl.find memories ident) in let addr = read_arg read_addr in Printf.sprintf "bitset<%d>{((%s).to_string()).substr ((%s).to_ulong(), %d)}" word_size id addr word_size
   (* a optimiser en faisant la conversion to_ulong en ocaml *)
   | _                            -> failwith "not implemented"
   ) ^ ";\n"
 
 let compile_eq2 p memories (ident, expr) = match expr with
     | Ereg id -> "reg_" ^ id ^ " = " ^ id ^ ";\n"
-    | Eram(_, word_size, _, write_enable, write_addr, data) -> let id = (Hashtbl.find memories ident) in let waddr = (read_arg write_addr) in Printf.sprintf "if((%s).to_ulong()) {%s = bitset<(%s).size()>{((%s).to_string()).replace((%s).to_ulong(), %d, (%s).to_string())}};\n" (read_arg write_enable) id id id waddr word_size (read_arg data)
+    | Eram(_, word_size, _, write_enable, write_addr, data) -> let id = (Hashtbl.find memories ident) in let waddr = (read_arg write_addr) in Printf.sprintf "if((%s).to_ulong()) {%s = bitset<(%s).size()>{((%s).to_string()).replace((%s).to_ulong(), %d, (%s).to_string())};};\n" (read_arg write_enable) id id id waddr word_size (read_arg data)
     | _ -> ""
 
 let header =
@@ -88,7 +88,7 @@ let compile filename =
 	  Format.fprintf ff "\tbitset<%d> %s = {0};\n" (1 lsl addr_size) ("ram_" ^ ident)  (* initialise les RAM *)
 	| Erom(addr_size, word_size, read_addr) when !i=0 -> i:=1; (* ne mettre qu'une rom, la gestion ici paraît bizarre *)
 	  Hashtbl.add memories ident ("rom_" ^ ident);
-	  Format.fprintf ff "\trom_%s = bitset<(%d)>{read_rom()};\n" ident (1 lsl addr_size) (* crée la ROM *)
+	  Format.fprintf ff "\tbitset<(%d)> rom_%s = bitset<(%d)>{read_rom()};\n" (1 lsl addr_size) ident (1 lsl addr_size) (* crée la ROM *)
 	 | Erom _ -> failwith "Erreur : deux accès à la ROM"
     | _ -> ()
 	) p.p_eqs;
