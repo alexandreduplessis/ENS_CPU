@@ -24,7 +24,7 @@ let rec simulate_eqs p memories(ident, expr) = ident ^ "=" ^ (match expr with
   | Emux (choice, a, b)          -> Printf.sprintf "(%s == bitset<1>(1)) ? %s : %s" (read_arg choice) (read_arg b) (read_arg a)
   | Eram(addr_size, word_size, read_addr, _, _, _)-> let id = (Hashtbl.find memories ident) in 
     let addr = read_arg read_addr in  
-    Printf.sprintf "bitset<%d>{((%s).to_string()).substr ((%s).to_ulong())*%d, (%d))}" word_size id addr word_size word_size 
+    Printf.sprintf "bitset<%d>{((%s).to_string()).substr ((%s).to_ulong()*%d), (%d))}" word_size id addr word_size word_size 
   (* a optimiser en faisant la conversion to_ulong en ocaml *)
   | Erom(addr_size, word_size, read_addr)-> let id = (Hashtbl.find memories ident) in let addr = read_arg read_addr in Printf.sprintf "bitset<%d>{((%s).to_string()).substr ((%s).to_ulong()*%d, %d)}" word_size id addr word_size word_size
   (* a optimiser en faisant la conversion to_ulong en ocaml *)
