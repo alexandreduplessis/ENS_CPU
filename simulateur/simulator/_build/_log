@@ -1,0 +1,54 @@
+### Starting build.
+# Target: compiler.ml.depends, tags: { debug, extension:ml, file:compiler.ml, ocaml, ocamldep, quiet, traverse, use_menhir }
+ocamldep.opt -modules compiler.ml > compiler.ml.depends
+# Target: netlist.ml.depends, tags: { debug, extension:ml, file:netlist.ml, ocaml, ocamldep, quiet, traverse, use_menhir }
+ocamldep.opt -modules netlist.ml > netlist.ml.depends
+# Target: netlist_lexer.mll, tags: { extension:mll, file:netlist_lexer.mll, lexer, ocaml, ocamllex, quiet, traverse, use_menhir }
+ocamllex.opt -q netlist_lexer.mll
+# Target: netlist_lexer.ml.depends, tags: { debug, extension:ml, file:netlist_lexer.ml, ocaml, ocamldep, quiet, traverse, use_menhir }
+ocamldep.opt -modules netlist_lexer.ml > netlist_lexer.ml.depends
+# Target: netlist_parser.mly.depends, tags: { extension:mly, file:netlist_parser.mly, infer, menhir_ocamldep, ocaml, ocamldep, quiet, traverse, use_menhir }
+menhir --raw-depend --ocamldep 'ocamldep.opt -modules' netlist_parser.mly > netlist_parser.mly.depends
+# Target: netlist_ast.ml.depends, tags: { debug, extension:ml, file:netlist_ast.ml, ocaml, ocamldep, quiet, traverse, use_menhir }
+ocamldep.opt -modules netlist_ast.ml > netlist_ast.ml.depends
+# Target: netlist_ast.cmo, tags: { byte, compile, debug, extension:cmo, extension:ml, file:netlist_ast.cmo, file:netlist_ast.ml, implem, ocaml, quiet, traverse, use_menhir }
+ocamlc.opt -c -g -o netlist_ast.cmo netlist_ast.ml
+# Target: netlist_parser.mly, tags: { byte, compile, debug, extension:ml, extension:mly, file:netlist_parser.ml, file:netlist_parser.mly, infer, menhir, ocaml, parser, quiet, traverse, use_menhir }
+menhir --ocamlc 'ocamlc.opt -g' --infer netlist_parser.mly
+# Target: netlist_parser.mli.depends, tags: { extension:mli, file:netlist_parser.mli, ocaml, ocamldep, quiet, traverse, use_menhir }
+ocamldep.opt -modules netlist_parser.mli > netlist_parser.mli.depends
+# Target: netlist_parser.cmi, tags: { byte, compile, extension:mli, file:netlist_parser.mli, interf, ocaml, quiet, traverse, use_menhir }
+ocamlc.opt -c -o netlist_parser.cmi netlist_parser.mli
+# Target: netlist_lexer.cmo, tags: { byte, compile, debug, extension:cmo, extension:ml, file:netlist_lexer.cmo, file:netlist_lexer.ml, implem, ocaml, quiet, traverse, use_menhir }
+ocamlc.opt -c -g -o netlist_lexer.cmo netlist_lexer.ml
+# Target: scheduler.ml.depends, tags: { debug, extension:ml, file:scheduler.ml, ocaml, ocamldep, quiet, traverse, use_menhir }
+ocamldep.opt -modules scheduler.ml > scheduler.ml.depends
+# Target: graph.ml.depends, tags: { debug, extension:ml, file:graph.ml, ocaml, ocamldep, quiet, traverse, use_menhir }
+ocamldep.opt -modules graph.ml > graph.ml.depends
+# Target: graph.cmo, tags: { byte, compile, debug, extension:cmo, extension:ml, file:graph.cmo, file:graph.ml, implem, ocaml, quiet, traverse, use_menhir }
+ocamlc.opt -c -g -o graph.cmo graph.ml
+# Target: netlist.cmo, tags: { byte, compile, debug, extension:cmo, extension:ml, file:netlist.cmo, file:netlist.ml, implem, ocaml, quiet, traverse, use_menhir }
+ocamlc.opt -c -g -o netlist.cmo netlist.ml
+# Target: scheduler.cmo, tags: { byte, compile, debug, extension:cmo, extension:ml, file:scheduler.cmo, file:scheduler.ml, implem, ocaml, quiet, traverse, use_menhir }
+ocamlc.opt -c -g -o scheduler.cmo scheduler.ml
+# Target: compiler.cmo, tags: { byte, compile, debug, extension:cmo, extension:ml, file:compiler.cmo, file:compiler.ml, implem, ocaml, quiet, traverse, use_menhir }
+ocamlc.opt -c -g -o compiler.cmo compiler.ml
+# Target: netlist_parser.ml.depends, tags: { debug, extension:ml, file:netlist_parser.ml, ocaml, ocamldep, quiet, traverse, use_menhir }
+ocamldep.opt -modules netlist_parser.ml > netlist_parser.ml.depends
+# Target: netlist_ast.cmx, tags: { compile, debug, extension:cmx, extension:ml, file:netlist_ast.cmx, file:netlist_ast.ml, implem, native, ocaml, quiet, traverse, use_menhir }
+ocamlopt.opt -c -g -o netlist_ast.cmx netlist_ast.ml
+# Target: netlist_parser.cmx, tags: { compile, debug, extension:cmx, extension:ml, file:netlist_parser.cmx, file:netlist_parser.ml, implem, native, ocaml, quiet, traverse, use_menhir }
+ocamlopt.opt -c -g -o netlist_parser.cmx netlist_parser.ml
+# Target: netlist_lexer.cmx, tags: { compile, debug, extension:cmx, extension:ml, file:netlist_lexer.cmx, file:netlist_lexer.ml, implem, native, ocaml, quiet, traverse, use_menhir }
+ocamlopt.opt -c -g -o netlist_lexer.cmx netlist_lexer.ml
+# Target: graph.cmx, tags: { compile, debug, extension:cmx, extension:ml, file:graph.cmx, file:graph.ml, implem, native, ocaml, quiet, traverse, use_menhir }
+ocamlopt.opt -c -g -o graph.cmx graph.ml
+# Target: netlist.cmx, tags: { compile, debug, extension:cmx, extension:ml, file:netlist.cmx, file:netlist.ml, implem, native, ocaml, quiet, traverse, use_menhir }
+ocamlopt.opt -c -g -o netlist.cmx netlist.ml
+# Target: scheduler.cmx, tags: { compile, debug, extension:cmx, extension:ml, file:scheduler.cmx, file:scheduler.ml, implem, native, ocaml, quiet, traverse, use_menhir }
+ocamlopt.opt -c -g -o scheduler.cmx scheduler.ml
+# Target: compiler.cmx, tags: { compile, debug, extension:cmx, extension:ml, file:compiler.cmx, file:compiler.ml, implem, native, ocaml, quiet, traverse, use_menhir }
+ocamlopt.opt -c -g -o compiler.cmx compiler.ml
+# Target: compiler.native, tags: { debug, dont_link_with, extension:native, file:compiler.native, link, native, ocaml, program, quiet, traverse, use_menhir, use_unix }
+ocamlopt.opt unix.cmxa -g graph.cmx netlist_ast.cmx netlist_parser.cmx netlist_lexer.cmx netlist.cmx scheduler.cmx compiler.cmx -o compiler.native
+# Compilation successful.
