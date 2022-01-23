@@ -8,7 +8,7 @@ let read_arg x = match x with
    | Aconst (VBit b) -> if b then "bitset<1>{\"1\"}" else "bitset<1>{\"0\"}"
    | Aconst (VBitArray ba) -> 
    let bb = String.concat "" (Array.to_list (Array.map (fun x -> (string_of_int (Bool.to_int x))) ba)) in 
-   let taille = Array.length ba in "bitset<" ^ (string_of_int taille) ^ ">{" ^ bb ^ "}" 
+   let taille = Array.length ba in "bitset<\"" ^ (string_of_int taille) ^ "\">{" ^ bb ^ "}" 
 
 let rec simulate_eqs p memories(ident, expr) = ident ^ "=" ^ (match expr with
   | Earg x                       -> read_arg x
