@@ -8,8 +8,8 @@ On a écrit un compilateur netlist vers C++ pour des questions d'optimisation.
 **Utilisation**
 - `make clean` (on ne sait jamais)
 - `make`
-- `./compiler.native -n 3 nom_netlist.net`(compile et exécute)
-Si on veut se limiter à 5 tours par exemple, il suffit de remplacer la 3e commande par `./compiler.native -n 3 nom_netlist.net`.
+- `./compiler.native nom_netlist.net`(compile et exécute)
+Si on veut se limiter à 5 tours par exemple, il suffit de remplacer la 3e commande par `./compiler.native -n 5 nom_netlist.net`.
 
 **ROM**
 La ROM doit être stockée dans le fichier `rom`, sous forme d'une seule ligne de 0 et de 1.
