@@ -10,6 +10,7 @@
   		  "mul", MUL;
   		  "div", DIV;
   		  "addi", ADDI;
+		  "subi", SUBI;
   		  "xor", XOR;
   		  "xori", XORI;
   		  "or", OR;
@@ -44,7 +45,7 @@
 let letter = ['a'-'z' 'A'-'Z']
 let digit = ['0'-'9']
 let ident = letter (letter | digit)*
-let integer = ['0'-'9']+
+let integer = '-'? ['0'-'9']+
 let space = [' ' '\t']
 
 rule token = parse

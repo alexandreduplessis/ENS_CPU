@@ -4,7 +4,7 @@
 
 %token <int> CONST
 %token <string> REG
-%token ADD, ADDI, SUB, MUL, DIV
+%token ADD, ADDI, SUB, MUL, DIV, SUBI
 %token AND, ANDI, OR, ORI, XOR, XORI, NOT
 %token SHIFTL, SHIFTLI, SHIFTR, SHIFTRI
 %token LOAD, LIMM, STORE, MOVE
@@ -38,6 +38,7 @@ instr:
 | SHIFTR a = r3d { Shiftr a }
 | SHIFTL a = r3d { Shiftl a }
 | ADDI a = r2Id { Addi a }
+| SUBI a = r2Id { Subi a }
 | XORI a = r2Id { Xori a }
 | ORI a = r2Id { Ori a }
 | ANDI a = r2Id { Andi a }

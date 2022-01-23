@@ -23,6 +23,7 @@ type instr =
   | Shiftr of r3d
   | Shiftl of r3d
   | Addi of r2Id
+  | Subi of r2Id
   | Xori of r2Id
   | Ori of r2Id
   | Andi of r2Id
