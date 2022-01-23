@@ -2,7 +2,7 @@ total = int(input())
 f = open("rom2", 'r')
 chaine = ""
 for line in f:
-   chaine += line[:-2]
+   chaine += line[:-1]
 f.close()
 l = len(chaine)
 zero = total-l
