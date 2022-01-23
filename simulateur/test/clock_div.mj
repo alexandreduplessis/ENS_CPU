@@ -1,4 +1,0 @@
-main() = (o) where
-  o = reg(c);
-  c = not (reg (o))
-end where

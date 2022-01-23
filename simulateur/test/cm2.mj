@@ -1,4 +1,0 @@
-main(x) = (s, r) where
-  s = reg (x xor s);
-  r = x and s
-end where
