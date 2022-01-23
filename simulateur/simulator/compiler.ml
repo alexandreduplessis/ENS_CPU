@@ -21,6 +21,7 @@ let rec simulate_eqs p memories(ident, expr) = ident ^ "=" ^ (match expr with
   | Econcat (x, y)               -> let a = read_arg x in let b = read_arg y in Printf.sprintf "bitset<(%s).size()>{(%s).to_string() + (%s).to_string()}" ident a b
   | Eslice (i1, i2, x)           -> Printf.sprintf "bitset<(%s).size()>{((%s).to_string()).substr (%d, %d)}" ident (read_arg x) i1 (i2-i1+1)
   | Eselect (i, x)               -> Printf.sprintf "bitset<1>{(%s.to_string())[%d]}" (read_arg x) i
+  | Emux (choice, a, b)          -> Printf.sprintf "(%s == bitset<1>(1)) ? %s : %s" (read_arg choice) (read_arg a) (read_arg b)
   | Eram(addr_size, word_size, read_addr, _, _, _)-> let id = (Hashtbl.find memories ident) in 
     let addr = read_arg read_addr in  
     Printf.sprintf "bitset<%d>{((%s).to_string()).substr ((%s).to_ulong())*%d, (%d))}" word_size id addr word_size word_size 
