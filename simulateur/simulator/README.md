@@ -21,4 +21,4 @@ Pour des raisons de commodité, un script python a été créé pour créer, à 
 **Entrées**
 La lecture des entrées est intuitive.
 
-_Version 23/01/2022_
+_Version du 23/01/2022_
