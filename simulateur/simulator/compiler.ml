@@ -111,7 +111,7 @@ let compile filename =
 
 let main () =
   Arg.parse
-    ["-n", Arg.Set_int number_steps, "Number of steps to simulate"]
+    ["-n", Arg.Set_int number_steps, "Nombres d'étapes à simuler."]
     compile
     ""
 ;;
