@@ -86,10 +86,10 @@ let compile filename =
    	| Ereg x -> let taille = Hashtbl.find tailles x in Format.fprintf ff "\tbitset<%d> reg_%s = 0;\n" taille x;
 	| Eram(addr_size, word_size, read_addr, write_enable, write_addr, data) ->	   
 	  Hashtbl.add memories ident ("ram_" ^ ident);
-	  Format.fprintf ff "\tbitset<%d> %s = {0};\n" (1 lsl addr_size) ("ram_" ^ ident)  (* initialise les RAM *)
+	  Format.fprintf ff "\tbitset<%d> %s = {0};\n" ((1 lsl addr_size)*word_size) ("ram_" ^ ident)  (* initialise les RAM *)
 	| Erom(addr_size, word_size, read_addr) when !i=0 -> i:=1; (* ne mettre qu'une rom, la gestion ici paraît bizarre *)
 	  Hashtbl.add memories ident ("rom_" ^ ident);
-	  Format.fprintf ff "\tbitset<(%d)> rom_%s = bitset<(%d)>{read_rom()};\n" (1 lsl addr_size) ident (1 lsl addr_size) (* crée la ROM *)
+	  Format.fprintf ff "\tbitset<(%d)> rom_%s = bitset<(%d)>{read_rom()};\n" ((1 lsl addr_size)*word_size) ident (1 lsl addr_size) (* crée la ROM *)
 	 | Erom _ -> failwith "Erreur : deux accès à la ROM"
     | _ -> ()
 	) p.p_eqs;
