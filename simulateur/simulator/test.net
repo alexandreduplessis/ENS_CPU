@@ -1,6 +1,6 @@
 INPUT a, b
 OUTPUT s
 VAR
-  a : 3, b : 3, s : 3
+  a : 3, b : 3, s : 38
 IN
-s = AND a b
+s = ROM 16 38 0000000000000000
