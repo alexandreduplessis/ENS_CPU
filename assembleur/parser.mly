@@ -45,9 +45,9 @@ instr:
 | SHIFTRI a = r2Id { Shiftri a }
 | SHIFTLI a = r2Id { Shiftli a }
 | NOT a = r2d { Not a }
-| LOAD a = r2Id { Load a }
+| LOAD a = r2d { Load a }
 | LIMM a = rId { Limm a }
-| STORE a = r2Id { Store a }
+| STORE a = rId { Store a }
 | MOVE a = r2d { Move a }
 | BEQ a = r2Id { Beq a }
 | BNE a = r2Id { Bne a }

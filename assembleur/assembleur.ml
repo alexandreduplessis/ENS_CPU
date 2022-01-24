@@ -73,6 +73,7 @@ let jr2Id_to_bin (ra, rd, imm) = match imm with
 let rId_to_bin (rd, imm) =
   (reg_to_bin rd)^(String.make 8 '0')^(imm_to_bin imm)^"\n"
   
+  
 let rImm_to_bin  = function 
   | Jconst imm -> (String.make 12 '0')^(imm_to_bin imm)^"\n"
   | Jlabel label -> if Smap.mem label !labelMap then (String.make 12 '0')^(imm_to_bin (Smap.find label !labelMap))^"\n"
@@ -98,9 +99,9 @@ let compile_instr = function
   | Shiftli (rd, ra, imm) -> "0000011000"^(r2Id_to_bin (rd, ra, imm))
   | Shiftri (rd, ra, imm) -> "0000011001"^(r2Id_to_bin (rd, ra, imm))
   | Not (rd, ra) -> "0000000111"^(r2d_to_bin (rd, ra))
-  | Load (rd, ra, imm) -> "0001000000"^(r2Id_to_bin (rd, ra, imm))
+  | Load (rd, ra) -> "0001000000"^(r2d_to_bin (rd, ra))
   | Limm (rd, imm) -> "0000110000"^(rId_to_bin (rd, imm))
-  | Store (rd, ra, imm) -> "0001000001"^(r2Id_to_bin (rd, ra, imm))
+  | Store (ra, imm) -> "0001000001"^(rId_to_bin (ra, imm))
   | Move (rd, ra) -> "0000100000"^(r2d_to_bin (rd, ra))
   | Beq (rd, ra, imm) -> "0100000001"^(jr2Id_to_bin (rd, ra, imm))
   | Bne (rd, ra, imm) -> "0110000001"^(jr2Id_to_bin (rd, ra, imm))

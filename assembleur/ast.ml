@@ -12,7 +12,6 @@ type r2d = reg * reg
 
 type jImm = Jconst of const | Jlabel of string
 
-
 type r2Id = reg * reg * jImm
 
 type rId = reg * const
@@ -36,9 +35,9 @@ type instr =
   | Shiftri of r2Id
   | Shiftli of r2Id
   | Not of r2d
-  | Load of r2Id
+  | Load of r2d
   | Limm of rId
-  | Store of r2Id
+  | Store of rId
   | Move of r2d
   | Beq of r2Id
   | Bne of r2Id
