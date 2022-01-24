@@ -1,8 +1,8 @@
 # **Assembleur**
 
 Pour compiler un fichier assembleur `file.s` en binaire, il faut utiliser les commandes :
-- `dune build`
-- `dune exec ./assembleur fichier.s`
+- `dune build assembleur.exe`
+- `dune exec ./assembleur.exe fichier.s`
 
 Le fichier compilé s'appelle `rom`.
 
