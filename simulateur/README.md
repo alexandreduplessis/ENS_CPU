@@ -5,7 +5,8 @@ On a écrit un compilateur netlist vers C++ pour des questions d'optimisation.
 
 - `make clean` (on ne sait jamais)
 - `make`
-- `./compiler.native nom_netlist.net`(compile et exécute)
+- `./compiler.native nom_netlist.net`(compile la netlist en C++)
+- `./nom_netlist` (simule la netlist)
 
 Si on veut se limiter à 5 tours par exemple, il suffit de remplacer la troisième commande par 
 
