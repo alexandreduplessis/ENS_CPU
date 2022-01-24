@@ -61,7 +61,7 @@ int compt = 1
 int main(int argc, char** argv) {
 "
 
-let read_file file_name =
+let read_file file_name = (* retourne le nombre de lignes d'un fichier *)
   let in_channel = open_in file_name in
   let compt = ref 0 in
   try 
@@ -107,9 +107,9 @@ let compile filename =
 	 | Erom _ -> failwith "Erreur : deux accès à la ROM"
     | _ -> ()
 	) p.p_eqs;
-    if (!number_steps = -1) then
+    if (!number_steps = -1) then (* boucle à l'infini *)
       Format.fprintf ff "%s" "\twhile (1) {\n"
-    else
+    else (* l'utilisateur a précisé un nombre de steps *)
       Format.fprintf ff "\tfor (int step = 0; step < %d; step++) {\n" !number_steps
     ;
     read_inputs p ff;
