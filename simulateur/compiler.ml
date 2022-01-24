@@ -111,7 +111,7 @@ let compile filename =
     Format.fprintf fchan "%s" "\t}\n\treturn 0;\n}\n";
     Format.fprintf fchan "@.";
     close_all ();
-    let commande = "g++ " ^ (file_name ^ ".c") ^ " -o " ^ file_name ^ "; ./" ^ file_name in
+    let commande = "g++ " ^ (file_name ^ ".c") ^ " -o " ^ file_name in
     ignore (Unix.system commande)
   with
     | Netlist.Parse_error s -> Format.eprintf "Erreur : %s@." s; exit 2
