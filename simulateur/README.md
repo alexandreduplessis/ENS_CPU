@@ -29,4 +29,4 @@ La lecture des entrées est intuitive.
 Le simulateur gère toutes les opérations du langage netlist, le nombre de RAM désiré, une ROM, et des registres. On procède en deux passes : une pour simuler toutes les équations sauf l'écriture dans la RAM, et une deuxième pour écrire dans la RAM et mettre à jour les registres. En effet ceux-ci sont gérés grâce à deux variables pour chaque variable à stocker, une pour le cycle en cours et une une pour le cycle précédent. Toutes les variables sont stockées sous forme de bitsets.
 
 
-_Version du 23/01/2022_
+_Version du 24/01/2022_
