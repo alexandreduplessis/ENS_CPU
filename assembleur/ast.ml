@@ -10,11 +10,13 @@ type r3d = reg * reg * reg
 
 type r2d = reg * reg
 
-type r2Id = reg * reg * const
+type jImm = Jconst of const | Jlabel of string
+
+
+type r2Id = reg * reg * jImm
 
 type rId = reg * const
 
-type rImm = const
 
 type instr = 
   | Div of r4d
@@ -42,6 +44,7 @@ type instr =
   | Bne of r2Id
   | Blt of r2Id
   | Ble of r2Id
-  | Jmp of rImm
+  | Jmp of jImm
+  | Label of string
 
 type program = instr list

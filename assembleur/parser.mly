@@ -3,7 +3,7 @@
 %}
 
 %token <int> CONST
-%token <string> REG
+%token <string> REG, LABEL, LBL
 %token ADD, ADDI, SUB, MUL, DIV, SUBI
 %token AND, ANDI, OR, ORI, XOR, XORI, NOT
 %token SHIFTL, SHIFTLI, SHIFTR, SHIFTRI
@@ -54,6 +54,7 @@ instr:
 | BLT a = r2Id { Blt a }
 | BLE a = r2Id { Ble a }
 | JMP a = rImm { Jmp a }
+| label = LABEL { Label label }
 
 
 r4d:
@@ -66,10 +67,12 @@ r2d:
 | rd = REG ra = REG { rd, ra }
 
 r2Id:
-| rd = REG ra = REG imm = CONST { rd, ra, imm }
+| rd = REG ra = REG imm = CONST { rd, ra, Jconst imm }
+| rd = REG ra = REG lbl = LBL { rd, ra, Jlabel lbl }
 
 rId:
 | rd = REG imm = CONST { rd, imm }
 
 rImm:
-| imm = CONST { imm }
+| imm = CONST { Jconst imm }
+| lbl = LBL { Jlabel lbl }

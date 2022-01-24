@@ -2,6 +2,10 @@ open Format
 open Lexing
 open Ast
 
+module Smap = Map.Make(String);;
+
+let labelMap = ref Smap.empty;;
+
 let ifile = ref ""
 let ofile = ref ""
 
@@ -56,13 +60,19 @@ let r3d_to_bin (ra, rb, rd) =
 let r2d_to_bin (ra, rd) =
   (reg_to_bin rd)^(reg_to_bin ra)^(String.make 20 '0')
 
-let r2Id_to_bin (ra, rd, imm) =
-  (reg_to_bin rd)^(reg_to_bin ra)^(String.make 4 '0')^(imm_to_bin imm)
+let r2Id_to_bin (ra, rd, imm) = match imm with
+	| Jconst imm -> (reg_to_bin rd)^(reg_to_bin ra)^(String.make 4 '0')^(imm_to_bin imm)
+  | Jlabel label -> if Smap.mem label !labelMap then (reg_to_bin rd)^(reg_to_bin ra)^(String.make 4 '0')^(imm_to_bin (Smap.find label !labelMap))
+	else raise (Ast.Syntax_error ("La label "^label^" n'est pas defini."))
+  
 
 let rId_to_bin (rd, imm) =
   (reg_to_bin rd)^(String.make 8 '0')^(imm_to_bin imm)
   
-let rImm_to_bin imm = (String.make 12 '0')^(imm_to_bin imm)
+let rImm_to_bin  = function 
+  | Jconst imm -> (String.make 12 '0')^(imm_to_bin imm)
+  | Jlabel label -> if Smap.mem label !labelMap then (String.make 12 '0')^(imm_to_bin (Smap.find label !labelMap))
+	else raise (Ast.Syntax_error ("La label "^label^" n'est pas defini."))
 
 
 
@@ -92,11 +102,16 @@ let compile_instr = function
   | Bne (rd, ra, imm) -> "0110000001"^(r2Id_to_bin (rd, ra, imm))
   | Blt (rd, ra, imm) -> "1000000001"^(r2Id_to_bin (rd, ra, imm))
   | Ble (rd, ra, imm) -> "1010000001"^(r2Id_to_bin (rd, ra, imm))
-  | Jmp (imm) -> "0010000000"^(rImm_to_bin (imm));;
+  | Jmp (imm) -> "0010000000"^(rImm_to_bin (imm))
+  | _ -> "";;
 
-let rec compile ff prog = match prog with
-    instr :: r -> Format.fprintf ff "%s" (compile_instr instr); compile ff r
-  | [] -> ();;
+let rec compile ff prog =
+  let i = ref 0 in
+  List.iter ( fun instr -> match instr with 
+      Label s -> labelMap := Smap.add s !i !labelMap;
+	| _ -> i := !i + 38;
+  ) prog;
+  List.iter (fun instr -> Format.fprintf ff "%s" (compile_instr instr)) prog
 
 
 let () =

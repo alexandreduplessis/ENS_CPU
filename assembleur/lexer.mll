@@ -30,7 +30,7 @@
   		  "bne", BNE;
   		  "blt", BLT;
   		  "ble", BLE;
-  		  "jal", JMP]
+  		  "jmp", JMP]
   		  
   let id_or_kwd s = try List.assoc s kwd_tbl with _ -> raise (Error ("L'instruction "^s^"n'existe pas."));;
 
@@ -51,8 +51,10 @@ rule token = parse
   | "//" [^'\n']* { token lexbuf }
   | '\n'    { new_line lexbuf; token lexbuf }
   | space+  { token lexbuf }
+  | ident as id ':' { LABEL id }
   | ident as id { id_or_kwd id }
   | '%' (ident as id) { reg id }
+  | '$' (ident as id) { LBL id }
   | '$' (integer as s) { CONST (int_of_string s) }
   | eof     { EOF }
   | _ as c  { raise (Lexing_error c) }
