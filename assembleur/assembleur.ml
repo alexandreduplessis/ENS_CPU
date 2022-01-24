@@ -61,10 +61,14 @@ let r2d_to_bin (ra, rd) =
   (reg_to_bin rd)^(reg_to_bin ra)^(String.make 20 '0')^"\n"
 
 let r2Id_to_bin (ra, rd, imm) = match imm with
-	| Jconst imm -> (reg_to_bin rd)^(reg_to_bin ra)^(String.make 4 '0')^(imm_to_bin imm)^"\n"
-  | Jlabel label -> if Smap.mem label !labelMap then (reg_to_bin rd)^(reg_to_bin ra)^(String.make 4 '0')^(imm_to_bin (Smap.find label !labelMap))^"\n"
+	| Jconst imm -> (reg_to_bin rd)^(String.make 4 '0')^(reg_to_bin ra)^(imm_to_bin imm)^"\n"
+  | Jlabel label -> if Smap.mem label !labelMap then (reg_to_bin rd)^(String.make 4 '0')^(reg_to_bin ra)^(imm_to_bin (Smap.find label !labelMap))^"\n"
 	else raise (Ast.Syntax_error ("La label "^label^" n'est pas defini."))
   
+let jr2Id_to_bin (ra, rd, imm) = match imm with
+	| Jconst imm -> (String.make 4 '0')^(reg_to_bin rd)^(reg_to_bin ra)^(imm_to_bin imm)^"\n"
+  | Jlabel label -> if Smap.mem label !labelMap then (String.make 4 '0')^(reg_to_bin rd)^(reg_to_bin ra)^(imm_to_bin (Smap.find label !labelMap))^"\n"
+	else raise (Ast.Syntax_error ("La label "^label^" n'est pas defini."))
 
 let rId_to_bin (rd, imm) =
   (reg_to_bin rd)^(String.make 8 '0')^(imm_to_bin imm)^"\n"
@@ -98,10 +102,10 @@ let compile_instr = function
   | Limm (rd, imm) -> "0000110000"^(rId_to_bin (rd, imm))
   | Store (rd, ra, imm) -> "0001000001"^(r2Id_to_bin (rd, ra, imm))
   | Move (rd, ra) -> "0000100000"^(r2d_to_bin (rd, ra))
-  | Beq (rd, ra, imm) -> "0100000001"^(r2Id_to_bin (rd, ra, imm))
-  | Bne (rd, ra, imm) -> "0110000001"^(r2Id_to_bin (rd, ra, imm))
-  | Blt (rd, ra, imm) -> "1000000001"^(r2Id_to_bin (rd, ra, imm))
-  | Ble (rd, ra, imm) -> "1010000001"^(r2Id_to_bin (rd, ra, imm))
+  | Beq (rd, ra, imm) -> "0100000001"^(jr2Id_to_bin (rd, ra, imm))
+  | Bne (rd, ra, imm) -> "0110000001"^(jr2Id_to_bin (rd, ra, imm))
+  | Blt (rd, ra, imm) -> "1000000001"^(jr2Id_to_bin (rd, ra, imm))
+  | Ble (rd, ra, imm) -> "1010000001"^(jr2Id_to_bin (rd, ra, imm))
   | Jmp (imm) -> "0010000000"^(rImm_to_bin (imm))
   | _ -> "";;
 
