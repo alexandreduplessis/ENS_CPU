@@ -3,7 +3,6 @@
 ## ENS Ulm - 2021/2022 - Cours Systèmes Numériques
 
 4 composants :
-
 - Assembleur.
 - Processeur en lui-même, codé en python (utilise le compilateur `carotte.py` pour créer le `.net`).
 - Simulateur de netlist : compilateur netlist vers C++.
