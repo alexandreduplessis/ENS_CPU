@@ -4,7 +4,7 @@ cp ./rom ../simulateur/rom
 cd ../simulateur/
 make clean
 make
-./compiler.native test.net
+./compiler.native ../processeur/test.net
 cp ./test ../gui/a.out
 cp ./rom ../gui/rom
 cd ../gui
