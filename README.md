@@ -9,4 +9,10 @@
 - Horloge : programme en assembleur.
 - GUI : interface en python, avec qt.
 
+**Utilisation**
+
+Utiliser les commandes :
+- `chmod +x main.sh`
+- `./main.sh`
+
 _Version du 24/01/2022 : AMIGO Joseph, DUPLESSIS Alexandre, OLLIVIER François_
