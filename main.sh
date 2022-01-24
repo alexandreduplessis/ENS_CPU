@@ -1,3 +1,4 @@
+cd ../assembleur
 dune exec ./assembleur.exe fichier.s
 cp ./rom ../simulateur/rom
 cd ../simulateur/
