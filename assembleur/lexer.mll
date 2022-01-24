@@ -30,9 +30,9 @@
   		  "bne", BNE;
   		  "blt", BLT;
   		  "ble", BLE;
-  		  "jmp", JMP]
+  		  "jump", JMP]
   		  
-  let id_or_kwd s = try List.assoc s kwd_tbl with _ -> raise (Error ("L'instruction "^s^"n'existe pas."));;
+  let id_or_kwd s = try List.assoc s kwd_tbl with _ -> raise (Error ("L'instruction "^s^" n'existe pas."));;
 
   let reg_list = ["r0"; "r1"; "r2"; "r3"; "r4"; "r5"; "r6"; "r7"; "r8"; "r9"; "ra"; "rb"; "rc"; "rd"; "re"; "rf"];;
 
