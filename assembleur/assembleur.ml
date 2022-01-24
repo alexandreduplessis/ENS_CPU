@@ -26,7 +26,8 @@ let localisation pos =
 
 let rec int_to_bin n = if n = 0 then "" else match n mod 2 with
     0 -> (int_to_bin (n/2))^"0"
-  | 1 -> (int_to_bin (n/2))^"1";;
+  | 1 -> (int_to_bin (n/2))^"1"
+  | _ -> (int_to_bin (n/2))^"1";;
 
 let rec imm_to_bin n = if n >= 32768 then imm_to_bin (n - 65536)
   else
@@ -49,7 +50,8 @@ let reg_to_bin = function
   | "rc" -> "1100"
   | "rd" -> "1101"
   | "re" -> "1110"
-  | "rf" -> "1111";;
+  | "rf" -> "1111"
+  | _ -> "0000";;
 
 let r4d_to_bin (rd, ra, rb, rr) =
   (reg_to_bin rd)^(reg_to_bin ra)^(reg_to_bin rb)^(reg_to_bin rr)^(String.make 12 '0')^"\n"
