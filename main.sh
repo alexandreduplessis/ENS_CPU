@@ -1,6 +1,7 @@
 cd assembleur
 duune clean
 dune build assembleur.exe
+cp ../horloge/fichier.s fichier.s
 dune exec ./assembleur.exe fichier.s
 cp rom ../simulateur/rom
 cd ../simulateur
