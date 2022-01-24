@@ -1,5 +1,5 @@
 cd assembleur
-duune clean
+dune clean
 dune build assembleur.exe
 cp ../horloge/fichier.s fichier.s
 dune exec ./assembleur.exe fichier.s
