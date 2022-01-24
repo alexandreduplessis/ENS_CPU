@@ -60,7 +60,9 @@ let r3d_to_bin (ra, rb, rd) =
   (reg_to_bin rd)^(reg_to_bin ra)^(reg_to_bin rb)^(String.make 16 '0')^"\n"
 
 let r2d_to_bin (ra, rd) =
-  (reg_to_bin rd)^(reg_to_bin ra)^(String.make 20 '0')^"\n"
+  (reg_to_bin rd)^(String.make 4 '0')^(reg_to_bin ra)^(String.make 16 '0')^"\n"
+
+let mov (op2, rd) = (reg_to_bin rd)^(reg_to_bin op2)^(String.make 20 '0')^"\n"
 
 let r2Id_to_bin (ra, rd, imm) = match imm with
 	| Jconst imm -> (reg_to_bin rd)^(String.make 4 '0')^(reg_to_bin ra)^(imm_to_bin imm)^"\n"
@@ -81,6 +83,10 @@ let rImm_to_bin  = function
   | Jlabel label -> if Smap.mem label !labelMap then (String.make 12 '0')^(imm_to_bin (Smap.find label !labelMap))^"\n"
 	else raise (Ast.Syntax_error ("La label "^label^" n'est pas defini."))
 
+let store op1 = function 
+  | Jconst imm -> (String.make 8 '0')^(reg_to_bin op1)^(imm_to_bin imm)^"\n"
+  | Jlabel label -> if Smap.mem label !labelMap then (String.make 8 '0')^(reg_to_bin op1)^(imm_to_bin (Smap.find label !labelMap))^"\n"
+	else raise (Ast.Syntax_error ("La label "^label^" n'est pas defini."))
 
 
 let compile_instr = function
@@ -104,7 +110,7 @@ let compile_instr = function
   | Load (rd, ra) -> "0001000000"^(r2d_to_bin (rd, ra))
   | Limm (rd, imm) -> "0000110000"^(rId_to_bin (rd, imm))
   | Store (ra, imm) -> "0001000001"^(rId_to_bin (ra, imm))
-  | Move (rd, ra) -> "0000100000"^(r2d_to_bin (rd, ra))
+  | Move (rd, ra) -> "0000100000"^(mov (rd, ra))
   | Beq (rd, ra, imm) -> "0100000001"^(jr2Id_to_bin (rd, ra, imm))
   | Bne (rd, ra, imm) -> "0110000001"^(jr2Id_to_bin (rd, ra, imm))
   | Blt (rd, ra, imm) -> "1000000001"^(jr2Id_to_bin (rd, ra, imm))
