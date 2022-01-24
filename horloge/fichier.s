@@ -56,7 +56,7 @@ jours:
 limm %r2 $0
 mov %r3 %rf
 addi %rf %rf $1
-load %r9 %r4
+load %r4 %r9
 beq %rf %r9 $mois
 mov %rf %r3
 jmp $secondes
