@@ -1,4 +1,5 @@
 cd assembleur
+dune clean
 dune build assembleur.exe
 dune exec ./assembleur.exe fichier.s
 cp ./rom ../simulateur/rom
