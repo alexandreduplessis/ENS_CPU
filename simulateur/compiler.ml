@@ -24,13 +24,11 @@ let rec simulate_eqs p memories(ident, expr) = ident ^ "=" ^ (match expr with
   | Emux (choice, a, b)          -> Printf.sprintf "(%s == bitset<1>(1)) ? %s : %s" (read_arg choice) (read_arg a) (read_arg b)
   | Eram(addr_size, word_size, read_addr, _, _, _)-> let id = (Hashtbl.find memories ident) in 
     let addr = read_arg read_addr in  
-    Printf.sprintf "bitset<%d>{((%s).to_string()).substr ((%s).to_ulong()*%d, (%d))}" word_size id addr word_size word_size 
-  (* a optimiser en faisant la conversion to_ulong en ocaml *)
+    Printf.sprintf "bitset<%d>{((%s).to_string()).substr ((%s).to_ulong()*%d, (%d))}" word_size id addr word_size word_size
   | Erom(addr_size, word_size, read_addr)-> let addr = read_arg read_addr in Printf.sprintf "rom[(%s).to_ulong()]" addr
-  | _                            -> failwith "not implemented"
   ) ^ ";\n"
 
-let compile_eq2 p memories (ident, expr) = match expr with
+let compile_eq2 p memories (ident, expr) = match expr with (* traite la maj des variables reg et l'écriture dans la ram *)
     | Ereg id -> "reg_" ^ id ^ " = " ^ id ^ ";\n"
     | Eram(_, word_size, _, write_enable, write_addr, data) -> let id = (Hashtbl.find memories ident) in let waddr = (read_arg write_addr) in Printf.sprintf "if((%s).to_ulong()) {%s = bitset<(%s).size()>{((%s).to_string()).replace((%s).to_ulong()*%d, %d, (%s).to_string())};};\n" (read_arg write_enable) id id id waddr word_size word_size (read_arg data)
     | _ -> ""
@@ -97,10 +95,10 @@ let compile filename =
     	| TBit -> Hashtbl.add tailles id 1; Format.fprintf ff "\tbitset<1> %s;\n" id
     	| TBitArray i -> Hashtbl.add tailles id i; Format.fprintf ff "\tbitset<%d> %s;\n" i id) p.p_vars;
     let memories = Hashtbl.create 17 in
-    let taille_rom = read_file "rom" in
+    let taille_rom = read_file "rom" in (* lit le fichier rom pour connaître le nombre de lignes et initialiser le tableau c++ *)
     let i = ref 0 in
     List.iter (fun (ident, expr) -> match expr with
-   	| Ereg x -> let taille = Hashtbl.find tailles x in Format.fprintf ff "\tbitset<%d> reg_%s = 0;\n" taille x;
+   	| Ereg x -> let taille = Hashtbl.find tailles x in Format.fprintf ff "\tbitset<%d> reg_%s = 0;\n" taille x; (* chaque variable aparaissant dans une instruction reg est en double, une pour le cycle courant, et une pour le cycle précédent *)
 	| Eram(addr_size, word_size, read_addr, write_enable, write_addr, data) ->	   
 	  Hashtbl.add memories ident ("ram_" ^ ident);
 	  Format.fprintf ff "\tbitset<%d> %s = {0};\n" ((1 lsl addr_size)*word_size) ("ram_" ^ ident)  (* initialise les RAM *)
@@ -118,7 +116,7 @@ let compile filename =
     List.iter (fun eq -> Format.fprintf ff "%s" (("\t\t")^(simulate_eqs p memories eq))) p.p_eqs;
     List.iter (fun eq -> Format.fprintf ff "%s" (("\t\t")^(compile_eq2 p memories eq))) p.p_eqs;
     print_outputs p ff;
-    Format.fprintf ff "%s" "\tcout.flush();";
+    Format.fprintf ff "%s" "\tcout.flush();"; (* permet la récupération par la clock *)
     Format.fprintf ff "%s" "\t}\n\treturn 0;\n}\n";
     Format.fprintf ff "@.";
     close_all ();
