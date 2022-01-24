@@ -22,16 +22,12 @@ except ModuleNotFoundError:
     colorama = FakeColorama()
 
 _equation_counter = 0
-_input_list: typing.List['Variable'] = []
-_equation_list: typing.List['Variable'] = []
+_input_list = []
+_equation_list = []
 _output_list = []
 _name_set = set()
-_ALLOW_RIBBON_LOGIC_OPERATIONS = False
 
-def allow_ribbon_logic_operations(enable : bool) -> None:
-    '''Enable or disable ribbon logic operations'''
-    global _ALLOW_RIBBON_LOGIC_OPERATIONS # pylint: disable=W0603
-    _ALLOW_RIBBON_LOGIC_OPERATIONS = enable
+ALLOW_RIBBON_LOGIC_OPERATIONS = True
 
 def get_and_increment_equation_counter() -> int:
     '''Return the current global equation counter, and increment it'''
@@ -40,7 +36,7 @@ def get_and_increment_equation_counter() -> int:
     _equation_counter += 1
     return old_value
 
-class Variable(typing.Sequence['Variable']):
+class Variable(typing.List['Variable']):
     '''The basis of carotte.py: netlist variables core'''
     def __init__(self, name: str, bus_size: int, autogen_name: bool = True):
         assert name not in _name_set
@@ -104,9 +100,7 @@ class Variable(typing.Sequence['Variable']):
         return Xor(self, rhs)
     def __invert__(self) -> 'Variable':
         return Not(self)
-    def __len__(self) -> int:
-        return self.bus_size
-    def __getitem__(self, index: typing.Union[int, slice]) -> 'Variable':
+    def __getitem__(self, index: typing.Union[int, slice]) -> 'Variable': # type: ignore # this ignore is bad, FIXME
         if isinstance(index, slice):
             if (index.step is not None) and (index.step != 1):
                 raise TypeError(f"Slices must use a step of '1' (have {index.step})")
@@ -116,7 +110,7 @@ class Variable(typing.Sequence['Variable']):
         if isinstance(index, int):
             return Select(index, self)
         raise TypeError(f"Invalid getitem, index: {index} is neither a slice or an integer")
-    def __add__(self, rhs: 'Variable') -> 'Variable':
+    def __add__(self, rhs: 'Variable') -> 'Variable': # type: ignore
         return Concat(self, rhs)
 
 class Defer:
@@ -165,12 +159,9 @@ class EquationVariable(Variable):
 class Constant(EquationVariable):
     '''Netlist constant'''
     def __init__(self, value: str):
-        if len(value) == 0:
-            raise ValueError("Defining an empty constant is not allowed")
         for x in value:
             if x not in "01tf":
-                raise ValueError(f"The character {x} of the constant {value} is not allowed"
-                    + " (it should either be 0, 1, t or f)")
+                raise ValueError(f"The character {x} of the constant {value} is not allowed (it should either be 0, 1, t or f)")
         super().__init__(len(value))
         self.value = value
     def __str__(self) -> str:
@@ -180,10 +171,10 @@ class Unop(EquationVariable):
     '''Netlist unary operations on variables'''
     unop_name = ""
     def __init__(self, x: VariableOrDefer):
-        if not _ALLOW_RIBBON_LOGIC_OPERATIONS and x.bus_size != 1:
+        if not ALLOW_RIBBON_LOGIC_OPERATIONS and x.bus_size != 1:
             raise ValueError(f"Unops can only be performed on signals of bus size 1 (have {x.bus_size}). "
-                             + "If your simulator handles ribbons logic operations, "
-                             + "call `allow_ribbon_logic_operations(True)`")
+                             + f"If your simulator handles ribbons logic operations, "
+                             + f"switch 'ALLOW_RIBBON_LOGIC_OPERATIONS' to 'True'")
         super().__init__(x.bus_size)
         self.x = x
     def __str__(self) -> str:
@@ -204,11 +195,11 @@ class Binop(EquationVariable):
     binop_name = ""
     def __init__(self, lhs: VariableOrDefer, rhsB: VariableOrDefer):
         if lhs.bus_size != rhsB.bus_size:
-            raise ValueError(f"Operands have different bus sizes: {lhs.bus_size} and {rhsB.bus_size}")
-        if not _ALLOW_RIBBON_LOGIC_OPERATIONS and lhs.bus_size != 1:
+            raise ValueError("Operands have different bus sizes")
+        if not ALLOW_RIBBON_LOGIC_OPERATIONS and lhs.bus_size != 1:
             raise ValueError(f"Binops can only be performed on signals of bus size 1 (have {lhs.bus_size}). "
-                             + "If your simulator handles ribbons logic operations, "
-                             + "call `allow_ribbon_logic_operations(True)`")
+                             + f"If your simulator handles ribbons logic operations, "
+                             + f"switch 'ALLOW_RIBBON_LOGIC_OPERATIONS' to 'True'")
         super().__init__(lhs.bus_size)
         self.lhs = lhs
         self.rhs = rhsB
@@ -233,10 +224,8 @@ class Xor(Binop):
 class Mux(EquationVariable):
     '''Netlist MUX'''
     def __init__(self, choice: VariableOrDefer, a: VariableOrDefer, b: VariableOrDefer):
-        if choice.bus_size != 1:
-            raise ValueError(f"MUX choice bus size must be 1, have {choice.bus_size}")
-        if a.bus_size != b.bus_size:
-            raise ValueError(f"MUX sides must have the same bus size, have {a.bus_size} and {b.bus_size}")
+        assert choice.bus_size == 1
+        assert a.bus_size == b.bus_size
         self.choice = choice
         self.a = a
         self.b = b
@@ -247,9 +236,7 @@ class Mux(EquationVariable):
 class ROM(EquationVariable):
     '''Netlist ROM'''
     def __init__(self, addr_size: int, word_size: int, read_addr: VariableOrDefer):
-        if read_addr.bus_size != addr_size:
-            raise ValueError(f"ROM read address bus size ({read_addr.bus_size}) must be equal "
-                + "to addr_size ({addr_size})")
+        assert read_addr.bus_size == addr_size
         self.addr_size = addr_size
         self.word_size = word_size
         self.read_addr = read_addr
@@ -261,17 +248,10 @@ class RAM(EquationVariable):
     '''Netlist RAM'''
     def __init__(self, addr_size: int, word_size: int, read_addr: VariableOrDefer,
                  write_enable: VariableOrDefer, write_addr: VariableOrDefer, write_data: VariableOrDefer):
-        if read_addr.bus_size != addr_size:
-            raise ValueError(f"RAM read address bus size ({read_addr.bus_size}) must be equal "
-                + "to addr_size ({addr_size})")
-        if write_enable.bus_size != 1:
-            raise ValueError(f"RAM write_enable bus size must be equal to 1, have {write_enable.bus_size}")
-        if write_addr.bus_size != addr_size:
-            raise ValueError(f"RAM write address bus size ({write_addr.bus_size}) must be equal "
-                + "to addr_size ({addr_size})")
-        if write_data.bus_size != word_size:
-            raise ValueError(f"RAM write data bus size ({write_data.bus_size}) must be equal "
-                + "to word_size ({word_size})")
+        assert read_addr.bus_size == addr_size
+        assert write_enable.bus_size == 1
+        assert write_addr.bus_size == addr_size
+        assert write_data.bus_size == word_size
         self.addr_size = addr_size
         self.word_size = word_size
         self.read_addr = read_addr
@@ -326,7 +306,7 @@ def get_netlist() -> str:
         ""
         + "INPUT " + ", ".join(x.name for x in _input_list) + "\n"
         + "OUTPUT " + ", ".join(x.name for x in _output_list) + "\n"
-        + "VAR " + ", ".join(x.get_full_name() for x in _input_list + _equation_list) + "\n"
+        + "VAR " + ", ".join(x.get_full_name() for x in _input_list + _equation_list) + "\n" # type: ignore
         + "IN" + "\n"
         + "".join(str(x) + "\n" for x in _equation_list)
     )
