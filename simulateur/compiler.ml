@@ -26,7 +26,7 @@ let rec simulate_eqs p memories(ident, expr) = ident ^ "=" ^ (match expr with
     let addr = read_arg read_addr in  
     Printf.sprintf "bitset<%d>{((%s).to_string()).substr ((%s).to_ulong()*%d, (%d))}" word_size id addr word_size word_size 
   (* a optimiser en faisant la conversion to_ulong en ocaml *)
-  | Erom(addr_size, word_size, read_addr)-> let id = (Hashtbl.find memories ident) in let addr = read_arg read_addr in Printf.sprintf "bitset<%d>{((%s).to_string()).substr ((%s).to_ulong()*%d, %d)}" word_size id addr word_size word_size
+  | Erom(addr_size, word_size, read_addr)-> let addr = read_arg read_addr in Printf.sprintf "bitset<%d>{(rom.to_string()).substr ((%s).to_ulong()*%d, %d)}" word_size addr word_size word_size
   (* a optimiser en faisant la conversion to_ulong en ocaml *)
   | _                            -> failwith "not implemented"
   ) ^ ";\n"
@@ -43,19 +43,36 @@ let header =
 #include <string>
 using namespace std;
 
-string read_rom(){
+string read_rom(word, taille){
 	fstream newfile;
   	newfile.open(\"rom\",ios::in);
-  	string rom;
+  	bitset<word> rom [taille]
+  	string romstr;
+  	int compt = 0;
   	if (newfile.is_open()){
-		getline(newfile, rom);
+  	   while(getline(newfile, romstr)){
+         rom[i] = bitset<word> {romstr} ;
+         compt +=1;
+      }
 		newfile.close();
-   	}
-   	return rom;
+   }
+   return rom;
 }
+
+int compt = 1
 
 int main(int argc, char** argv) {
 "
+
+let read_file file_name =
+  let in_channel = open_in file_name in
+  let compt = ref 0 in
+  try 
+    while true do
+      let line = input_line in_channel in compt := !compt + 1
+    done; !compt
+  with End_of_file ->
+     close_in in_channel; !compt
 
 let read_inputs p ff = List.iter (fun id -> Format.fprintf ff
 	"\t\tcout << \"%s = ? \";\n\t\tcin >> %s;\n" id id) p.p_inputs
@@ -81,15 +98,15 @@ let compile filename =
     	| TBit -> Hashtbl.add tailles id 1; Format.fprintf ff "\tbitset<1> %s;\n" id
     	| TBitArray i -> Hashtbl.add tailles id i; Format.fprintf ff "\tbitset<%d> %s;\n" i id) p.p_vars;
     let memories = Hashtbl.create 17 in
+    let taille_rom = read_file "rom" in
     let i = ref 0 in
     List.iter (fun (ident, expr) -> match expr with
    	| Ereg x -> let taille = Hashtbl.find tailles x in Format.fprintf ff "\tbitset<%d> reg_%s = 0;\n" taille x;
 	| Eram(addr_size, word_size, read_addr, write_enable, write_addr, data) ->	   
 	  Hashtbl.add memories ident ("ram_" ^ ident);
 	  Format.fprintf ff "\tbitset<%d> %s = {0};\n" ((1 lsl addr_size)*word_size) ("ram_" ^ ident)  (* initialise les RAM *)
-	| Erom(addr_size, word_size, read_addr) when !i=0 -> i:=1; (* ne mettre qu'une rom, la gestion ici paraît bizarre *)
-	  Hashtbl.add memories ident ("rom_" ^ ident);
-	  Format.fprintf ff "\tbitset<(%d)> rom_%s = bitset<(%d)>{read_rom()};\n" ((1 lsl addr_size)*word_size) ident ((1 lsl addr_size)*word_size) (* crée la ROM *)
+	| Erom(addr_size, word_size, read_addr) when !i=0 -> i:=1;
+	  Format.fprintf ff "\tbitset<(%d)> rom[%d] = read_rom(%d, %d);\n" word_size taille_rom word_size taille_rom (* crée la ROM *)
 	 | Erom _ -> failwith "Erreur : deux accès à la ROM"
     | _ -> ()
 	) p.p_eqs;
@@ -102,6 +119,7 @@ let compile filename =
     List.iter (fun eq -> Format.fprintf ff "%s" (("\t\t")^(simulate_eqs p memories eq))) p.p_eqs;
     List.iter (fun eq -> Format.fprintf ff "%s" (("\t\t")^(compile_eq2 p memories eq))) p.p_eqs;
     print_outputs p ff;
+    Format.fprintf ff "%s" "\tcout.flush();";
     Format.fprintf ff "%s" "\t}\n\treturn 0;\n}\n";
     Format.fprintf ff "@.";
     close_all ();
