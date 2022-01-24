@@ -109,7 +109,7 @@ let rec compile ff prog =
   let i = ref 0 in
   List.iter ( fun instr -> match instr with 
       Label s -> labelMap := Smap.add s !i !labelMap;
-	| _ -> i := !i + 38;
+	| _ -> i := !i + 1;
   ) prog;
   List.iter (fun instr -> let s = (compile_instr instr) in
 	Format.fprintf ff "%s" s) prog
