@@ -26,8 +26,7 @@ let rec simulate_eqs p memories(ident, expr) = ident ^ "=" ^ (match expr with
     let addr = read_arg read_addr in  
     Printf.sprintf "bitset<%d>{((%s).to_string()).substr ((%s).to_ulong()*%d, (%d))}" word_size id addr word_size word_size 
   (* a optimiser en faisant la conversion to_ulong en ocaml *)
-  | Erom(addr_size, word_size, read_addr)-> let addr = read_arg read_addr in Printf.sprintf "bitset<%d>{(rom.to_string()).substr ((%s).to_ulong()*%d, %d)}" word_size addr word_size word_size
-  (* a optimiser en faisant la conversion to_ulong en ocaml *)
+  | Erom(addr_size, word_size, read_addr)-> let addr = read_arg read_addr in Printf.sprintf "rom[(%s).to_ulong()]" addr
   | _                            -> failwith "not implemented"
   ) ^ ";\n"
 
