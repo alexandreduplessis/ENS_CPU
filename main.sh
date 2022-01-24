@@ -1,8 +1,8 @@
-cd ../assembleur
-dune build
-dune exec ./assembleur fichier.s
+cd assembleur
+dune build assembleur.exe
+dune exec ./assembleur.exe fichier.s
 cp ./rom ../simulateur/rom
-cd ../simulateur/
+cd ../simulateur
 make clean
 make
 ./compiler.native ../processeur/test.net
