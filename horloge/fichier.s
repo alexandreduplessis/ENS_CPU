@@ -31,7 +31,7 @@ sto %rd $12
 
 secondes:
 mov %r0 %rf
-addi %rf %rf $60
+addi %rf %rf $1
 beq %rf %r6 $minutes
 mov %rf %r0
 jmp $secondes
@@ -39,7 +39,7 @@ jmp $secondes
 minutes:
 limm %r0 $0
 mov %r1 %rf
-addi %rf %rf $60
+addi %rf %rf $1
 beq %rf %r6 $heures
 mov %rf %r1
 jmp $secondes
@@ -47,7 +47,7 @@ jmp $secondes
 heures:
 limm %r1 $0
 mov %r2 %rf
-addi %rf %rf $24
+addi %rf %rf $1
 beq %rf %r7 $jours
 mov %rf %r2
 jmp $secondes
