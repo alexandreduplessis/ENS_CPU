@@ -1,10 +1,23 @@
 # importing required librarie
 import sys
 import subprocess
+import re
 from PySide6.QtWidgets import QApplication, QWidget
 from PySide6.QtWidgets import QVBoxLayout, QLabel
 from PySide6.QtGui import QFont
 from PySide6.QtCore import QTimer, QTime, QObject, Qt, Signal, Slot, QThread, QProcess
+
+def complement_to_10(s):
+    if int(s) < 10:
+        return "0"+s
+    else:
+        return s
+
+def str_to_signed_int(s):
+    if int(s[0]):
+        return -1*(2**15-int(s[1:], 2))
+    else:
+        return int(s[1:], 2)
 
 class Window(QWidget):
   
@@ -43,7 +56,15 @@ class Window(QWidget):
 
     def onReadyReadStandardOutput(self):
         result = self.process.readAll().data().decode()
-        self.label.setText(result)
+        pattern_1 = r'register_0 = ([01]{16})'
+        pattern_2 = r'register_1 = ([01]{16})'
+        pattern_3 = r'register_2 = ([01]{16})'
+        r1 = str_to_signed_int(re.search(pattern_1, result).group(1))
+        r2 = str_to_signed_int(re.search(pattern_2, result).group(1))
+        r3 = str_to_signed_int(re.search(pattern_3, result).group(1))
+        self.label.setText(complement_to_10(str(r3))
+                           +":"+complement_to_10(str(r2))
+                           +":"+complement_to_10(str(r1)))
 
 # create pyqt5 app
 App = QApplication(sys.argv)
