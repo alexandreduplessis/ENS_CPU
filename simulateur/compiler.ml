@@ -10,7 +10,7 @@ let read_arg x = match x with (* renvoie le nom de variable ou le bitset corresp
    let bb = String.concat "" (Array.to_list (Array.map (fun x -> (string_of_int (Bool.to_int x))) ba)) in 
    let taille = Array.length ba in "bitset<" ^ (string_of_int taille) ^ ">{\"" ^ bb ^ "\"}" 
 
-let rec simulation_pass1 p hashram (ident, expr) = ident ^ "=" ^ (match expr with
+let rec simulation_pass1 p (ident, expr) = ident ^ "=" ^ (match expr with
   | Earg x                       -> read_arg x
   | Ereg x                       -> "reg_" ^ x
   | Enot x                       -> "~" ^ read_arg x
@@ -22,15 +22,14 @@ let rec simulation_pass1 p hashram (ident, expr) = ident ^ "=" ^ (match expr wit
   | Eslice (i1, i2, x)           -> let xx = (read_arg x) in Printf.sprintf "bitset<(%s).size()>{((%s).to_string()).substr (%s.size()- %d -1, %d)}" ident xx xx i2 (i2-i1+1)
   | Eselect (i, x)               -> Printf.sprintf "bitset<1>{(%s.to_string()).substr (%s.size() - %d -1, 1)}" (read_arg x) (read_arg x) i
   | Emux (choice, a, b)          -> Printf.sprintf "(%s == bitset<1>(1)) ? %s : %s" (read_arg choice) (read_arg a) (read_arg b)
-  | Eram(addr_size, word_size, read_addr, _, _, _)-> let id = (Hashtbl.find hashram ident) in 
-    let addr = read_arg read_addr in  (* on fait seulement la lecture *)
-    Printf.sprintf "bitset<%d>{((%s).to_string()).substr ((%s).to_ulong()*%d, (%d))}" word_size id addr word_size word_size
+  | Eram(addr_size, word_size, read_addr, _, _, _)-> let addr = read_arg read_addr in  (* on fait seulement la lecture *)
+    Printf.sprintf "ram[(%s).to_ulong()]" addr
   | Erom(addr_size, word_size, read_addr)-> let addr = read_arg read_addr in Printf.sprintf "rom[(%s).to_ulong()]" addr
   ) ^ ";\n"
 
-let simulation_pass2 p hashram (ident, expr) = match expr with (* traite la maj des variables reg et l'écriture dans la ram *)
+let simulation_pass2 p (ident, expr) = match expr with (* traite la maj des variables reg et l'écriture dans la ram *)
     | Ereg id -> "reg_" ^ id ^ " = " ^ id ^ ";\n"
-    | Eram(_, word_size, _, write_enable, write_addr, data) -> let id = (Hashtbl.find hashram ident) in let waddr = (read_arg write_addr) in Printf.sprintf "if((%s).to_ulong()) {%s = bitset<(%s).size()>{((%s).to_string()).replace((%s).to_ulong()*%d, %d, (%s).to_string())};};\n" (read_arg write_enable) id id id waddr word_size word_size (read_arg data) (* toutes les écritures sont faites à la fin *)
+    | Eram(_, word_size, _, write_enable, write_addr, data) -> let waddr = (read_arg write_addr) in Printf.sprintf "if((%s).to_ulong()) {ram[(%s).to_ulong()] = %s;};\n" (read_arg write_enable) waddr (read_arg data) (* toutes les écritures sont faites à la fin *)
     | _ -> ""
 
 let entete =
@@ -72,14 +71,12 @@ let compile filename =
     Env.iter (fun id ty -> match ty with
     	| TBit -> Hashtbl.add tailles id 1; Format.fprintf fchan "\tbitset<1> %s;\n" id
     	| TBitArray i -> Hashtbl.add tailles id i; Format.fprintf fchan "\tbitset<%d> %s;\n" i id) p.p_vars;
-    let hashram = Hashtbl.create 17 in
     let taille_rom = read_file "rom" in (* lit le fichier rom pour connaître le nombre de lignes et initialiser le tableau c++ *)
     let i = ref 0 in (* pour compter les instructions ROM et lever une erreur si > 1 *)
     List.iter (fun (ident, expr) -> match expr with
    	| Ereg x -> let taille = Hashtbl.find tailles x in Format.fprintf fchan "\tbitset<%d> reg_%s = 0;\n" taille x; (* chaque variable aparaissant dans une instruction reg est en double, une pour le cycle courant, et une pour le cycle précédent *)
-	| Eram(addr_size, word_size, read_addr, write_enable, write_addr, data) ->	   
-	  Hashtbl.add hashram ident ("ram_" ^ ident);
-	  Format.fprintf fchan "\tbitset<%d> %s = {0};\n" ((1 lsl addr_size)*word_size) ("ram_" ^ ident)  (* initialise les RAM *)
+	| Eram(addr_size, word_size, read_addr, write_enable, write_addr, data) ->
+	  Format.fprintf fchan "\tbitset<%d> ram [%d] = {0};\n" word_size (1 lsl addr_size)  (* initialise la RAM *)
 	| Erom(addr_size, word_size, read_addr) when !i=0 -> i:=1;
 	  Format.fprintf fchan (* lit le fichier rom *)
 "
@@ -104,8 +101,8 @@ let compile filename =
       Format.fprintf fchan "\tfor (int step = 0; step < %d; step++) {\n" !number_steps
     ;
     read_inputs p fchan;
-    List.iter (fun eq -> Format.fprintf fchan "%s" (("\t\t")^(simulation_pass1 p hashram eq))) p.p_eqs; (* passe 1 de la simulation *)
-    List.iter (fun eq -> Format.fprintf fchan "%s" (("\t\t")^(simulation_pass2 p hashram eq))) p.p_eqs; (* passe 2 pour reg et ram *)
+    List.iter (fun eq -> Format.fprintf fchan "%s" (("\t\t")^(simulation_pass1 p eq))) p.p_eqs; (* passe 1 de la simulation *)
+    List.iter (fun eq -> Format.fprintf fchan "%s" (("\t\t")^(simulation_pass2 p eq))) p.p_eqs; (* passe 2 pour reg et ram *)
     print_outputs p fchan;
     Format.fprintf fchan "%s" "\tcout.flush();"; (* permet la récupération des sorties par la clock *)
     Format.fprintf fchan "%s" "\t}\n\treturn 0;\n}\n";
