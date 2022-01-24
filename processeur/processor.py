@@ -43,7 +43,7 @@ def main():
     # pour addi, subi, xori... remplacer op2 par la constante
     op2_f = Mux(instr[4], immi, op2)
     
-    ram = RAM(params.ram.addr_size, params.ram.word_size, immi, is_write_ram, immi, op1_f)
+    ram = RAM(params.ram.addr_size, params.ram.word_size, op1_f, is_write_ram, immi, op1_f)
     
     (wd, c, not_zero_flag, stric_below_zero) = alu(instr, op1_f, op2_f)
     zero_flag = ~not_zero_flag
