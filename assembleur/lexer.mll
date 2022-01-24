@@ -30,8 +30,7 @@
   		  "bne", BNE;
   		  "blt", BLT;
   		  "ble", BLE;
-  		  "jal", JAL;
-  		  "jalr", JALR]
+  		  "jal", JMP]
   		  
   let id_or_kwd s = try List.assoc s kwd_tbl with _ -> raise (Error ("L'instruction "^s^"n'existe pas."));;
 
@@ -49,6 +48,7 @@ let integer = '-'? ['0'-'9']+
 let space = [' ' '\t']
 
 rule token = parse
+  | "//" [^'\n']* { token lexbuf }
   | '\n'    { new_line lexbuf; token lexbuf }
   | space+  { token lexbuf }
   | ident as id { id_or_kwd id }

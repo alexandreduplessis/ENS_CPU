@@ -50,17 +50,20 @@ let reg_to_bin = function
 let r4d_to_bin (rd, ra, rb, rr) =
   (reg_to_bin rd)^(reg_to_bin ra)^(reg_to_bin rb)^(reg_to_bin rr)^(String.make 12 '0')
 
-let r3d_to_bin (rd, ra, rb) =
+let r3d_to_bin (ra, rb, rd) =
   (reg_to_bin rd)^(reg_to_bin ra)^(reg_to_bin rb)^(String.make 16 '0')
 
-let r2d_to_bin (rd, ra) =
+let r2d_to_bin (ra, rd) =
   (reg_to_bin rd)^(reg_to_bin ra)^(String.make 20 '0')
 
-let r2Id_to_bin (rd, ra, imm) =
+let r2Id_to_bin (ra, rd, imm) =
   (reg_to_bin rd)^(reg_to_bin ra)^(String.make 4 '0')^(imm_to_bin imm)
 
 let rId_to_bin (rd, imm) =
   (reg_to_bin rd)^(String.make 8 '0')^(imm_to_bin imm)
+  
+let rImm_to_bin imm = (String.make 12 '0')^(imm_to_bin imm)
+
 
 
 let compile_instr = function
@@ -89,9 +92,7 @@ let compile_instr = function
   | Bne (rd, ra, imm) -> "0110000001"^(r2Id_to_bin (rd, ra, imm))
   | Blt (rd, ra, imm) -> "1000000001"^(r2Id_to_bin (rd, ra, imm))
   | Ble (rd, ra, imm) -> "1010000001"^(r2Id_to_bin (rd, ra, imm))
-  | Jal (rd, imm) -> "0010000000"^(rId_to_bin (rd, imm));;
-  (*
-  | Jalr (rd, ra, imm) -> "11010"^(r2Id_to_bin (rd, ra, imm));;*)
+  | Jmp (imm) -> "0010000000"^(rImm_to_bin (imm));;
 
 let rec compile ff prog = match prog with
     instr :: r -> Format.fprintf ff "%s" (compile_instr instr); compile ff r
@@ -127,6 +128,10 @@ let () =
     | Lexer.Lexing_error c ->
 	localisation (Lexing.lexeme_start_p buf);
 	eprintf "Erreur dans l'analyse lexicale: %c@." c;
+	exit 1
+	| Ast.Syntax_error s ->
+	localisation (Lexing.lexeme_start_p buf);
+	print_string s;
 	exit 1
     | Parser.Error ->
 	localisation (Lexing.lexeme_start_p buf);

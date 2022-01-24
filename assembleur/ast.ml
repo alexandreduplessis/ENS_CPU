@@ -1,3 +1,5 @@
+exception Syntax_error of string
+
 type reg = string
 
 type const = int
@@ -11,6 +13,8 @@ type r2d = reg * reg
 type r2Id = reg * reg * const
 
 type rId = reg * const
+
+type rImm = const
 
 type instr = 
   | Div of r4d
@@ -38,7 +42,6 @@ type instr =
   | Bne of r2Id
   | Blt of r2Id
   | Ble of r2Id
-  | Jal of rId
-  | Jalr of r2Id
+  | Jmp of rImm
 
 type program = instr list

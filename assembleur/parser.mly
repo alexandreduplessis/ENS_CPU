@@ -8,7 +8,7 @@
 %token AND, ANDI, OR, ORI, XOR, XORI, NOT
 %token SHIFTL, SHIFTLI, SHIFTR, SHIFTRI
 %token LOAD, LIMM, STORE, MOVE
-%token BEQ, BNE, BLT, BLE, JAL, JALR
+%token BEQ, BNE, BLT, BLE, JMP
 %token EOF
 
 
@@ -53,8 +53,7 @@ instr:
 | BNE a = r2Id { Bne a }
 | BLT a = r2Id { Blt a }
 | BLE a = r2Id { Ble a }
-| JAL a = rId { Jal a }
-| JALR a = r2Id { Jalr a }
+| JMP a = rImm { Jmp a }
 
 
 r4d:
@@ -71,3 +70,6 @@ r2Id:
 
 rId:
 | rd = REG imm = CONST { rd, imm }
+
+rImm:
+| imm = CONST { imm }
