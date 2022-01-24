@@ -7,6 +7,16 @@ from PySide6.QtWidgets import QVBoxLayout, QLabel
 from PySide6.QtGui import QFont
 from PySide6.QtCore import QTimer, QTime, QObject, Qt, Signal, Slot, QThread, QProcess
 
+def complement_to_1000(s):
+    if int(s) < 10:
+        return "000"+s
+    elif int(s) < 100:
+        return "00"+s
+    elif int(s) < 1000:
+        return "0"+s
+    else:
+        return s
+
 def complement_to_10(s):
     if int(s) < 10:
         return "0"+s
@@ -59,10 +69,19 @@ class Window(QWidget):
         pattern_1 = r'register_0 = ([01]{16})'
         pattern_2 = r'register_1 = ([01]{16})'
         pattern_3 = r'register_2 = ([01]{16})'
+        pattern_4 = r'register_3 = ([01]{16})'
+        pattern_5 = r'register_4 = ([01]{16})'
+        pattern_6 = r'register_5 = ([01]{16})'
         r1 = str_to_signed_int(re.search(pattern_1, result).group(1))
         r2 = str_to_signed_int(re.search(pattern_2, result).group(1))
         r3 = str_to_signed_int(re.search(pattern_3, result).group(1))
-        self.label.setText(complement_to_10(str(r3))
+        r4 = str_to_signed_int(re.search(pattern_4, result).group(1))
+        r5 = str_to_signed_int(re.search(pattern_5, result).group(1))
+        r6 = str_to_signed_int(re.search(pattern_6, result).group(1))
+        self.label.setText(complement_to_1000(str(r6))
+                           +"-"+complement_to_10(str(r5))
+                           +"-"+complement_to_10(str(r4))
+                           +" "+complement_to_10(str(r3))
                            +":"+complement_to_10(str(r2))
                            +":"+complement_to_10(str(r1)))
 
