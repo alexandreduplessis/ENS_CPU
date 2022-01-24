@@ -40,24 +40,6 @@ let header =
 #include <string>
 using namespace std;
 
-string read_rom(word, taille){
-	fstream newfile;
-  	newfile.open(\"rom\",ios::in);
-  	bitset<word> rom [taille]
-  	string romstr;
-  	int compt = 0;
-  	if (newfile.is_open()){
-  	   while(getline(newfile, romstr)){
-         rom[i] = bitset<word> {romstr} ;
-         compt +=1;
-      }
-		newfile.close();
-   }
-   return rom;
-}
-
-int compt = 1
-
 int main(int argc, char** argv) {
 "
 
@@ -103,7 +85,20 @@ let compile filename =
 	  Hashtbl.add memories ident ("ram_" ^ ident);
 	  Format.fprintf ff "\tbitset<%d> %s = {0};\n" ((1 lsl addr_size)*word_size) ("ram_" ^ ident)  (* initialise les RAM *)
 	| Erom(addr_size, word_size, read_addr) when !i=0 -> i:=1;
-	  Format.fprintf ff "\tbitset<(%d)> rom[%d] = read_rom(%d, %d);\n" word_size taille_rom word_size taille_rom (* crée la ROM *)
+	  Format.fprintf ff
+"
+   fstream newfile;
+   newfile.open(\"rom\",ios::in);
+   bitset<%d> rom [%d];
+   string romstr;
+   int compt = 0;
+   if (newfile.is_open()){
+      while(getline(newfile, romstr)){
+         rom[compt] = bitset<%d> {romstr} ;
+         compt +=1;
+      }
+	   newfile.close();
+   };\n" word_size taille_rom word_size (* crée la ROM *)
 	 | Erom _ -> failwith "Erreur : deux accès à la ROM"
     | _ -> ()
 	) p.p_eqs;
