@@ -30,7 +30,7 @@
   		  "bne", BNE;
   		  "blt", BLT;
   		  "ble", BLE;
-  		  "jump", JMP]
+  		  "jmp", JMP]
   		  
   let id_or_kwd s = try List.assoc s kwd_tbl with _ -> raise (Error ("L'instruction "^s^" n'existe pas."));;
 
