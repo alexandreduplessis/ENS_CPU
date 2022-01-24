@@ -20,7 +20,7 @@ let rec simulation_pass1 p hashram (ident, expr) = ident ^ "=" ^ (match expr wit
   | Ebinop (Nand,  x,  y)        -> "~" ^ "(" ^ read_arg x ^ "&" ^ read_arg y ^ ")"
   | Econcat (x, y)               -> let b = read_arg x in let a = read_arg y in Printf.sprintf "bitset<(%s).size()>{(%s).to_string() + (%s).to_string()}" ident a b
   | Eslice (i1, i2, x)           -> let xx = (read_arg x) in Printf.sprintf "bitset<(%s).size()>{((%s).to_string()).substr (%s.size()- %d -1, %d)}" ident xx xx i2 (i2-i1+1)
-  | Eselect (i, x)               -> Printf.sprintf "bitset<1>{(%s.to_string())[%s.size() - %d -1]}" (read_arg x) (read_arg x) i
+  | Eselect (i, x)               -> Printf.sprintf "bitset<1>{(%s.to_string()).substr (%s.size() - %d -1, 1)}" (read_arg x) (read_arg x) i
   | Emux (choice, a, b)          -> Printf.sprintf "(%s == bitset<1>(1)) ? %s : %s" (read_arg choice) (read_arg a) (read_arg b)
   | Eram(addr_size, word_size, read_addr, _, _, _)-> let id = (Hashtbl.find hashram ident) in 
     let addr = read_arg read_addr in  (* on fait seulement la lecture *)
