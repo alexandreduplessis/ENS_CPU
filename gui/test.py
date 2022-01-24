@@ -95,4 +95,4 @@ window = Window()
 window.show()
 window.run()  
 # start the app
-App.exit(App.exec_())
+App.exit(App.exec())
