@@ -52,26 +52,26 @@ let reg_to_bin = function
   | "rf" -> "1111";;
 
 let r4d_to_bin (rd, ra, rb, rr) =
-  (reg_to_bin rd)^(reg_to_bin ra)^(reg_to_bin rb)^(reg_to_bin rr)^(String.make 12 '0')
+  (reg_to_bin rd)^(reg_to_bin ra)^(reg_to_bin rb)^(reg_to_bin rr)^(String.make 12 '0')^"\n"
 
 let r3d_to_bin (ra, rb, rd) =
-  (reg_to_bin rd)^(reg_to_bin ra)^(reg_to_bin rb)^(String.make 16 '0')
+  (reg_to_bin rd)^(reg_to_bin ra)^(reg_to_bin rb)^(String.make 16 '0')^"\n"
 
 let r2d_to_bin (ra, rd) =
-  (reg_to_bin rd)^(reg_to_bin ra)^(String.make 20 '0')
+  (reg_to_bin rd)^(reg_to_bin ra)^(String.make 20 '0')^"\n"
 
 let r2Id_to_bin (ra, rd, imm) = match imm with
-	| Jconst imm -> (reg_to_bin rd)^(reg_to_bin ra)^(String.make 4 '0')^(imm_to_bin imm)
-  | Jlabel label -> if Smap.mem label !labelMap then (reg_to_bin rd)^(reg_to_bin ra)^(String.make 4 '0')^(imm_to_bin (Smap.find label !labelMap))
+	| Jconst imm -> (reg_to_bin rd)^(reg_to_bin ra)^(String.make 4 '0')^(imm_to_bin imm)^"\n"
+  | Jlabel label -> if Smap.mem label !labelMap then (reg_to_bin rd)^(reg_to_bin ra)^(String.make 4 '0')^(imm_to_bin (Smap.find label !labelMap))^"\n"
 	else raise (Ast.Syntax_error ("La label "^label^" n'est pas defini."))
   
 
 let rId_to_bin (rd, imm) =
-  (reg_to_bin rd)^(String.make 8 '0')^(imm_to_bin imm)
+  (reg_to_bin rd)^(String.make 8 '0')^(imm_to_bin imm)^"\n"
   
 let rImm_to_bin  = function 
-  | Jconst imm -> (String.make 12 '0')^(imm_to_bin imm)
-  | Jlabel label -> if Smap.mem label !labelMap then (String.make 12 '0')^(imm_to_bin (Smap.find label !labelMap))
+  | Jconst imm -> (String.make 12 '0')^(imm_to_bin imm)^"\n"
+  | Jlabel label -> if Smap.mem label !labelMap then (String.make 12 '0')^(imm_to_bin (Smap.find label !labelMap))^"\n"
 	else raise (Ast.Syntax_error ("La label "^label^" n'est pas defini."))
 
 
@@ -111,7 +111,8 @@ let rec compile ff prog =
       Label s -> labelMap := Smap.add s !i !labelMap;
 	| _ -> i := !i + 38;
   ) prog;
-  List.iter (fun instr -> Format.fprintf ff "%s" (compile_instr instr)) prog
+  List.iter (fun instr -> let s = (compile_instr instr) in
+	Format.fprintf ff "%s" s) prog
 
 
 let () =
@@ -135,9 +136,12 @@ let () =
     let prog = Parser.prog Lexer.token buf in
     close_in f;
 	
-	let ff = Format.formatter_of_out_channel (open_out !ofile) in
+	let out = (open_out !ofile) in
 	
-    compile ff prog
+	let ff = Format.formatter_of_out_channel out in
+	
+    compile ff prog;
+	close_out out;
 	
   with
     | Lexer.Lexing_error c ->
