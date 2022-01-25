@@ -5,7 +5,7 @@
 4 composants :
 - Assembleur.
 - Processeur en lui-même, codé en python (utilise le compilateur `carotte.py` pour créer le `.net`).
-- Simulateur de netlist : compilateur netlist vers C++.
+- Simulateur de netlist : compilateur netlist vers C++ codé en Ocaml.
 - Horloge : programme en assembleur.
 - GUI : interface en python, avec qt.
 
