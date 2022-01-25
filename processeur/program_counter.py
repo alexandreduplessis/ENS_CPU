@@ -33,9 +33,10 @@ def cond(jmp_cond, jmp_addr, pc_reg):
     
     return jal
 
-def program_counter(is_jump, jmp_addr, jmp_cond):
+def program_counter(activation, is_jump, jmp_addr, jmp_cond):
     pc_reg = Reg(Defer(params.rom.addr_size, lambda: pc_var))
     inc_pc_reg = incrementor(pc_reg)
     cond_addr = cond(jmp_cond, jmp_addr, inc_pc_reg)
     pc_var = Mux(is_jump, cond_addr, inc_pc_reg)
+    pc_var = Mux(activation, pc_var, pc_reg)
     return pc_reg

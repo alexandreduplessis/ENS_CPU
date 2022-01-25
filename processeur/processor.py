@@ -2,11 +2,13 @@ from lib_carotte import *
 from program_counter import program_counter
 from registers import registers
 from alu import alu
+from clock_div import clock_div
 import utils
 import params
 
 def main():
     pc_reg = program_counter(
+        Defer(1, lambda: activation),
         Defer(1, lambda: is_jump),
         Defer(16, lambda: immi),
         {
@@ -20,7 +22,13 @@ def main():
     op_code = ROM(params.rom.addr_size, params.rom.word_size, pc_reg)
     instr = op_code[28:38]
     immi = op_code[0:16]
-
+    
+    is_not_wait = ~(instr[6] & instr[5] & instr[4])
+    activation, clock_counter = clock_div(is_not_wait,
+                                          immi,
+                                          Reg(Defer(params.rom.addr_size, lambda: clock_counter)))
+    #is_not_wait.set_as_output("is_not_wait")
+    #activation.set_as_output("activation")
     cond_jmp_instr = instr[7:10]
     # les trois derniers bits de l'instruction sont réservés
     # aux sauts et aux sauts conditionnels
@@ -36,14 +44,14 @@ def main():
     addr1 = op_code[16:20]
     addr2 = op_code[20:24]
     output = Defer(params.registers.size, lambda: wd_f)
-    (op1, op2) = registers(addr1, addr2, output, addr_dst, (~is_jump & ~is_write_ram))
+    (op1, op2) = registers(addr1, addr2, output, addr_dst, (~is_jump & ~is_write_ram & is_not_wait))
     
     # pour move (100000) et limm (110000), mettre op1 à 0
     op1_f = Mux(instr[5], Constant("0000000000000000"), op1)
     # pour addi, subi, xori... remplacer op2 par la constante
     op2_f = Mux(instr[4], immi, op2)
     
-    ram = RAM(params.ram.addr_size, params.ram.word_size, op1_f, is_write_ram, immi, op1_f)
+    ram = RAM(params.ram.addr_size, params.ram.word_size, op1_f, (is_write_ram & is_not_wait), immi, op1_f)
     
     (wd, c, not_zero_flag, stric_below_zero) = alu(instr, op1_f, op2_f)
     zero_flag = ~not_zero_flag
