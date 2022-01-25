@@ -7,6 +7,7 @@
 %token ADD, ADDI, SUB, MUL, DIV, SUBI
 %token AND, ANDI, OR, ORI, XOR, XORI, NOT
 %token SHIFTL, SHIFTLI, SHIFTR, SHIFTRI
+%token WAIT
 %token LOAD, LIMM, STORE, MOVE
 %token BEQ, BNE, BLT, BLE, JMP
 %token EOF
@@ -55,6 +56,7 @@ instr:
 | BLE a = r2Id { Ble a }
 | JMP a = rImm { Jmp a }
 | label = LABEL { Label label }
+| WAIT a = rImm { Wait a }
 
 
 r4d:
