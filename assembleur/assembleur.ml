@@ -113,6 +113,7 @@ let compile_instr = function
   | Blt (rd, ra, imm) -> "1000000001"^(jr2Id_to_bin (rd, ra, imm))
   | Ble (rd, ra, imm) -> "1010000001"^(jr2Id_to_bin (rd, ra, imm))
   | Jmp (imm) -> "0010000000"^(rImm_to_bin (imm))
+  | Wait (imm) -> "0001110000"^(rImm_to_bin (imm))
   | _ -> "";;
 
 let rec compile ff prog =
@@ -170,7 +171,6 @@ let () =
 	localisation (Lexing.lexeme_start_p buf);
 	print_line s;
 	exit 1
-
 
 
 
