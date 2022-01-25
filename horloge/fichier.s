@@ -30,6 +30,7 @@ limm %rd $32
 sto %rd $12
 
 secondes:
+wait $6000
 mov %r0 %rf
 addi %rf %rf $1
 beq %rf %r6 $minutes
