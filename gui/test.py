@@ -35,13 +35,13 @@ class Window(QWidget):
         super().__init__()
   
         # setting geometry of main window
-        self.setGeometry(100, 100, 800, 400)
+        self.setGeometry(100, 100, 700, 400)
   
         # creating a vertical layout
         layout = QVBoxLayout()
   
         # creating font object
-        font = QFont('Arial', 120, QFont.Bold)
+        font = QFont('Arial', 100, QFont.Bold)
   
         # creating a label object
         self.label = QLabel()
