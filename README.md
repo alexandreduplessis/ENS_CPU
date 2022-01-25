@@ -12,7 +12,9 @@
 **Utilisation**
 
 Utiliser les commandes :
-- `chmod +x main.sh`
-- `./main.sh`
+- `chmod +x rapide.sh`
+- `./rapide.sh`
+
+(remplacer `rapide` par `reel` pour avoir la version en temps réel)
 
 _Version du 24/01/2022 : AMIGO Joseph, DUPLESSIS Alexandre, OLLIVIER François_
