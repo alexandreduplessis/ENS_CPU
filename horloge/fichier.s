@@ -4,29 +4,29 @@ limm %r8 $12
 limm %r3 $1
 limm %r4 $1
 
-limm %rd $31
+limm %rd $32
 sto %rd $1
-limm %rd $28
+limm %rd $29
 sto %rd $2
-limm %rd $31
+limm %rd $32
 sto %rd $3
-limm %rd $30
+limm %rd $31
 sto %rd $4
-limm %rd $31
+limm %rd $32
 sto %rd $5
-limm %rd $30
+limm %rd $31
 sto %rd $6
-limm %rd $31
+limm %rd $32
 sto %rd $7
-limm %rd $31
+limm %rd $32
 sto %rd $8
-limm %rd $30
+limm %rd $31
 sto %rd $9
-limm %rd $31
+limm %rd $32
 sto %rd $10
-limm %rd $30
-sto %rd $11
 limm %rd $31
+sto %rd $11
+limm %rd $32
 sto %rd $12
 
 secondes:
