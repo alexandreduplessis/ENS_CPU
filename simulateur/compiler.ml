@@ -20,7 +20,7 @@ let rec simulation_pass1 p (ident, expr) = ident ^ "=" ^ (match expr with
   | Ebinop (Nand,  x,  y)        -> "~" ^ "(" ^ read_arg x ^ "&" ^ read_arg y ^ ")"
   | Econcat (x, y)               -> let b = read_arg x in let a = read_arg y in Printf.sprintf "bitset<(%s).size()>{(%s).to_string() + (%s).to_string()}" ident a b
   | Eslice (i1, i2, x)           -> let xx = (read_arg x) in Printf.sprintf "0;\n\tfor (int i=0; i<=%d; i++){%s.set(i, %s[%d+i]);};\n\t" (i2-i1) ident xx i1
-  | Eselect (i, x)               -> Printf.sprintf ""bitset<1>{%s[%d]}" (read_arg x) i
+  | Eselect (i, x)               -> Printf.sprintf "bitset<1>{%s[%d]}" (read_arg x) i
   | Emux (choice, a, b)          -> Printf.sprintf "(%s == bitset<1>(1)) ? %s : %s" (read_arg choice) (read_arg a) (read_arg b)
   | Eram(addr_size, word_size, read_addr, _, _, _)-> let addr = read_arg read_addr in  (* on fait seulement la lecture *)
     Printf.sprintf "ram[(%s).to_ulong()]" addr
