@@ -45,5 +45,5 @@ type instr =
   | Ble of r2Id
   | Jmp of jImm
   | Label of string
-
+  | Wait of jImm
 type program = instr list
